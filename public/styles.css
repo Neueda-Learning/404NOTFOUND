@@ -370,6 +370,45 @@ h2 {
   border-top-color: var(--primary);
 }
 
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.58rem;
+}
+
+.insight-item {
+  border: 1px solid rgba(195, 207, 223, 0.9);
+  background: linear-gradient(180deg, #ffffff, #f7fbff);
+  border-radius: 12px;
+  padding: 0.62rem 0.7rem;
+}
+
+.insight-item span {
+  display: block;
+  color: #6d7f94;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.insight-item b {
+  display: block;
+  margin-top: 0.26rem;
+  color: #113656;
+  font-size: 1rem;
+}
+
+.insight-actions {
+  margin: 0.78rem 0 0;
+  padding-left: 1.1rem;
+  color: #30455f;
+  font-size: 0.84rem;
+}
+
+.insight-actions li + li {
+  margin-top: 0.35rem;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -475,6 +514,150 @@ select:focus-visible {
   background: linear-gradient(145deg, var(--brand-navy), #255f92);
   color: #fff;
   border-color: transparent;
+}
+
+.detail-panel {
+  border: 1px solid rgba(197, 208, 222, 0.95);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff, #f9fbfe);
+  padding: 0.75rem;
+  min-height: 180px;
+}
+
+.detail-panel.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #62758a;
+  text-align: center;
+}
+
+.detail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.detail-head h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #173958;
+}
+
+.detail-head p {
+  margin: 0.2rem 0 0;
+  color: #6a7a8f;
+  font-size: 0.78rem;
+}
+
+.detail-description {
+  margin: 0.65rem 0;
+  font-size: 0.86rem;
+  color: #2d435b;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.46rem;
+  margin-bottom: 0.55rem;
+}
+
+.detail-grid > div {
+  border: 1px solid #d8e0eb;
+  border-radius: 10px;
+  padding: 0.42rem 0.48rem;
+  background: #fff;
+}
+
+.detail-grid span {
+  display: block;
+  color: #73859b;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detail-grid b {
+  display: block;
+  margin-top: 0.2rem;
+  color: #193b5a;
+  font-size: 0.82rem;
+}
+
+.timeline h4 {
+  margin: 0.45rem 0;
+  color: #173958;
+}
+
+.timeline-item {
+  border-left: 2px solid #cad7e8;
+  padding: 0.25rem 0 0.45rem 0.5rem;
+}
+
+.timeline-item span {
+  display: block;
+  color: #6e8197;
+  font-size: 0.72rem;
+}
+
+.timeline-item b {
+  color: #204464;
+  font-size: 0.78rem;
+}
+
+.timeline-item p {
+  margin: 0.16rem 0 0;
+  color: #334e6c;
+  font-size: 0.77rem;
+}
+
+.rule-tuning-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.52rem;
+  margin-bottom: 0.75rem;
+}
+
+.rule-tuning-grid button {
+  grid-column: span 5;
+}
+
+.action-pack {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.action-pack button {
+  font-size: 0.7rem;
+  padding: 0.3rem 0.52rem;
+}
+
+.score-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.score-track {
+  width: 72px;
+  height: 6px;
+  border-radius: 999px;
+  background: #e7edf5;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2c7fb1, #f0a35d, #cf5252);
+}
+
+.active-row {
+  outline: 2px solid rgba(47, 115, 174, 0.35);
+  outline-offset: -2px;
 }
 
 .table-scroll {
@@ -700,6 +883,16 @@ td:nth-child(6) {
     grid-template-columns: 1fr;
   }
 
+  .insight-grid,
+  .detail-grid,
+  .rule-tuning-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rule-tuning-grid button {
+    grid-column: span 1;
+  }
+
   .toolbar > * {
     min-width: 0;
     width: 100%;
@@ -714,6 +907,10 @@ td:nth-child(6) {
   .bulk-actions button {
     flex: 1 1 calc(50% - 0.35rem);
     text-align: center;
+  }
+
+  .action-pack button {
+    flex: 1 1 calc(50% - 0.3rem);
   }
 }
 
@@ -807,6 +1004,14 @@ td:nth-child(6) {
 
   td button {
     width: auto;
+  }
+
+  .action-pack {
+    width: 100%;
+  }
+
+  .action-pack button {
+    flex: 1 1 100%;
   }
 
   .empty-row td {
