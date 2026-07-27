@@ -14,6 +14,7 @@
   --brand-steel: #5d7894;
   --brand-gold: #b27a4f;
   --brand-ivory: #fbf7f1;
+  --surface-elevated: rgba(255, 255, 255, 0.94);
   --shadow-soft: 0 14px 36px rgba(36, 45, 60, 0.08);
   --shadow-strong: 0 18px 42px rgba(26, 36, 52, 0.14);
 }
@@ -75,6 +76,11 @@ body::before {
 .toast {
   position: relative;
   z-index: 1;
+}
+
+.hero,
+.layout {
+  animation: page-fade-in 420ms ease both;
 }
 
 .hero {
@@ -147,6 +153,7 @@ body::before {
 .last-sync {
   color: var(--muted);
   font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .layout {
@@ -160,7 +167,7 @@ body::before {
 
 .card {
   grid-column: span 12;
-  background: var(--surface);
+  background: var(--surface-elevated);
   border: 1px solid rgba(209, 212, 219, 0.86);
   border-radius: 18px;
   padding: 1rem;
@@ -169,7 +176,14 @@ body::before {
   backdrop-filter: blur(4px);
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
   position: relative;
+  isolation: isolate;
+  animation: card-rise-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+.card:nth-of-type(2) { animation-delay: 50ms; }
+.card:nth-of-type(3) { animation-delay: 95ms; }
+.card:nth-of-type(4) { animation-delay: 140ms; }
+.card:nth-of-type(5) { animation-delay: 185ms; }
 
 .card::before {
   content: "";
@@ -181,10 +195,25 @@ body::before {
   background: linear-gradient(90deg, transparent, rgba(93, 120, 148, 0.55), transparent);
 }
 
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(18, 50, 80, 0.035), transparent 30%, rgba(178, 122, 79, 0.03));
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
 .card:hover {
   transform: translateY(-2px);
   border-color: rgba(114, 137, 167, 0.6);
   box-shadow: var(--shadow-strong);
+}
+
+.card:hover::after {
+  opacity: 1;
 }
 
 .card-half {
@@ -207,6 +236,7 @@ h2 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 0.68rem;
+  perspective: 1000px;
 }
 
 .summary-item {
@@ -220,6 +250,12 @@ h2 {
   transform: translateY(6px);
   opacity: 0;
   animation: summary-in 420ms ease forwards;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.summary-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(23, 40, 59, 0.12);
 }
 
 .summary-item:nth-child(2) { animation-delay: 40ms; }
@@ -239,8 +275,25 @@ h2 {
 .summary-item b {
   display: block;
   margin-top: 0.34rem;
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.36rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  font-variant-numeric: tabular-nums;
+  color: #102f4b;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.summary-item.critical b {
+  color: #8f2f2f;
+}
+
+.summary-item.warning b {
+  color: #8a572f;
+}
+
+.summary-item.success b {
+  color: #176750;
 }
 
 .summary-item.critical {
@@ -333,6 +386,7 @@ select:focus-visible {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 0.78rem;
+  align-items: center;
 }
 
 .toolbar > * {
@@ -379,6 +433,7 @@ table {
   min-width: 660px;
   border-collapse: collapse;
   font-size: 0.84rem;
+  font-variant-numeric: tabular-nums;
 }
 
 th,
@@ -386,6 +441,12 @@ td {
   padding: 0.44rem 0.5rem;
   text-align: left;
   border-bottom: 1px solid #eceff3;
+  white-space: nowrap;
+}
+
+td:nth-child(2),
+td:nth-child(3) {
+  white-space: normal;
 }
 
 th {
@@ -410,6 +471,10 @@ tbody tr:nth-child(even) {
 
 tbody tr:hover {
   background: #f3f8ff;
+}
+
+tbody tr {
+  transition: background-color 150ms ease;
 }
 
 td:nth-child(1),
@@ -447,6 +512,7 @@ td:nth-child(6) {
   font-weight: 700;
   color: #fff;
   letter-spacing: 0.02em;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.14);
 }
 
 .OPEN {
@@ -522,6 +588,28 @@ td:nth-child(6) {
   }
 }
 
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes card-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 920px) {
   .card,
   .card-half,
@@ -589,6 +677,11 @@ td:nth-child(6) {
     border-collapse: separate;
     border-spacing: 0 0.52rem;
     font-size: 0.82rem;
+  }
+
+  th,
+  td {
+    white-space: normal;
   }
 
   thead {
@@ -660,5 +753,12 @@ td:nth-child(6) {
   * {
     animation: none !important;
     transition: none !important;
+  }
+
+  .hero,
+  .layout,
+  .card,
+  .summary-item {
+    transform: none !important;
   }
 }
