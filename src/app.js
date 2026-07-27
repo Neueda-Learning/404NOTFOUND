@@ -356,6 +356,43 @@ app.get("/api/dashboard/summary", async (_req, res) => {
   });
 });
 
+app.post("/api/demo/reset", async (_req, res) => {
+  const db = await getDb();
+  const pattern = "DEMO-%";
+
+  const deleteEvents = await db.run(
+    `DELETE FROM alert_events
+     WHERE alert_id IN (
+       SELECT id FROM alerts WHERE account_id LIKE ?
+     )`,
+    [pattern]
+  );
+
+  const deleteAlerts = await db.run(
+    "DELETE FROM alerts WHERE account_id LIKE ?",
+    [pattern]
+  );
+
+  const deleteTransactions = await db.run(
+    "DELETE FROM transactions WHERE account_id LIKE ?",
+    [pattern]
+  );
+
+  const deleteProfiles = await db.run(
+    "DELETE FROM customer_risk_profiles WHERE account_id LIKE ?",
+    [pattern]
+  );
+
+  res.json({
+    deleted: {
+      alert_events: deleteEvents.changes || 0,
+      alerts: deleteAlerts.changes || 0,
+      transactions: deleteTransactions.changes || 0,
+      risk_profiles: deleteProfiles.changes || 0,
+    },
+  });
+});
+
 app.use((error, _req, res, _next) => {
   console.error(error);
   res.status(500).json({ error: "Internal server error", detail: error.message });

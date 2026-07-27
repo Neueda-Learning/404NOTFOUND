@@ -10,18 +10,26 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <header class="hero">
       <h1>FRAML Transaction Monitoring</h1>
       <p>Real-time monitoring, lifecycle management, and rule governance in one dashboard.</p>
+      <div class="hero-meta">
+        <span class="live-chip">Live API</span>
+        <span id="last-sync" class="last-sync">Last sync: --</span>
+        <button id="refresh-all" class="ghost" type="button">Refresh Dashboard</button>
+        <button id="seed-demo" class="ghost" type="button">Generate Demo Alerts</button>
+        <button id="reset-demo" class="ghost" type="button">Reset Demo Data</button>
+      </div>
     </header>
 
     <main class="layout">
-      <section class="card">
+      <section class="card card-half">
         <h2>Summary</h2>
         <div id="summary" class="summary-grid"></div>
       </section>
 
-      <section class="card">
+      <section class="card card-half">
         <h2>Create Transaction</h2>
         <form id="tx-form" class="form-grid">
           <input name="account_id" placeholder="Account ID" required />
@@ -36,7 +44,7 @@
         <pre id="tx-result" class="mono"></pre>
       </section>
 
-      <section class="card">
+      <section class="card card-wide">
         <h2>Active Alerts</h2>
         <div class="toolbar">
           <select id="alert-status-filter">
@@ -47,54 +55,70 @@
             <option value="CLOSED">CLOSED</option>
             <option value="DISMISSED">DISMISSED</option>
           </select>
+          <div id="severity-chips" class="chips" aria-label="Severity quick filter">
+            <button class="chip active" type="button" data-severity="">All Severity</button>
+            <button class="chip" type="button" data-severity="HIGH">HIGH</button>
+            <button class="chip" type="button" data-severity="MEDIUM">MEDIUM</button>
+            <button class="chip" type="button" data-severity="LOW">LOW</button>
+          </div>
+          <div class="bulk-actions" aria-label="Bulk alert actions">
+            <button id="ack-open" class="ghost" type="button">Acknowledge All OPEN</button>
+            <button id="dismiss-low" class="ghost" type="button">Dismiss LOW Severity</button>
+          </div>
           <button id="refresh-alerts" type="button">Refresh</button>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Rule</th>
-              <th>Status</th>
-              <th>Severity</th>
-              <th>Score</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="alerts-body"></tbody>
-        </table>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Rule</th>
+                <th>Status</th>
+                <th>Severity</th>
+                <th>Score</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="alerts-body"></tbody>
+          </table>
+        </div>
       </section>
 
-      <section class="card">
+      <section class="card card-wide">
         <h2>Rules</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Active</th>
-              <th>Version</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="rules-body"></tbody>
-        </table>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Active</th>
+                <th>Version</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="rules-body"></tbody>
+          </table>
+        </div>
       </section>
 
-      <section class="card">
+      <section class="card card-wide">
         <h2>Rule Performance</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Rule</th>
-              <th>Total Alerts</th>
-              <th>Resolved</th>
-              <th>Dismissed Rate</th>
-              <th>Conversion Rate</th>
-            </tr>
-          </thead>
-          <tbody id="performance-body"></tbody>
-        </table>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Rule</th>
+                <th>Total Alerts</th>
+                <th>Resolved</th>
+                <th>Dismissed Rate</th>
+                <th>Conversion Rate</th>
+              </tr>
+            </thead>
+            <tbody id="performance-body"></tbody>
+          </table>
+        </div>
       </section>
     </main>
 
