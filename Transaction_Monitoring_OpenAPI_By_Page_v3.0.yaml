@@ -1,0 +1,824 @@
+openapi: 3.0.3
+info:
+  title: Transaction Monitoring & Alerts Dashboard API
+  version: 3.0.0
+  description: |
+    Page-grouped executable contract for the five-page MVP. All timestamps are RFC 3339 UTC instants.
+    Monetary values are decimal strings. The service returns X-Correlation-Id on every response.
+servers:
+  - url: /api/v1
+tags:
+  - name: 01 Dashboard Home
+    description: APIs used by the navigation home page.
+  - name: 02 Transactions Page
+    description: APIs used by the transaction list page.
+  - name: 03 Transaction Detail Page
+    description: APIs used by the transaction detail page.
+  - name: 04 Alerts Console Page
+    description: APIs used by the alert workbench.
+  - name: 05 Alert Detail Page
+    description: APIs used by the alert detail page and state actions.
+  - name: 06 System Integration
+    description: Transaction ingestion and state update APIs not initiated by the five-page UI.
+  - name: 07 Reference Data
+    description: Enumerations, rule snapshots, and service health.
+paths:
+  /dashboard/summary:
+    get:
+      tags: [01 Dashboard Home]
+      operationId: getDashboardSummary
+      summary: Get UTC-day transaction and alert KPIs
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: KPI summary
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DashboardSummaryResponse'}
+        '500': {$ref: '#/components/responses/InternalError'}
+  /dashboard/trends:
+    get:
+      tags: [01 Dashboard Home]
+      operationId: getDashboardTrends
+      summary: Get daily transaction and alert trends
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: days
+          in: query
+          schema: {type: integer, minimum: 1, maximum: 30, default: 7}
+      responses:
+        '200':
+          description: Daily UTC trend points
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DashboardTrendsResponse'}
+        '400': {$ref: '#/components/responses/ValidationError'}
+  /dashboard/recent-transactions:
+    get:
+      tags: [01 Dashboard Home]
+      operationId: getRecentTransactions
+      summary: Get latest transactions for the home page
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: limit
+          in: query
+          schema: {type: integer, minimum: 1, maximum: 10, default: 5}
+      responses:
+        '200':
+          description: Recent transactions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/TransactionListItem'}}
+  /dashboard/recent-alerts:
+    get:
+      tags: [01 Dashboard Home]
+      operationId: getRecentAlerts
+      summary: Get latest non-terminal alerts for the home page
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: limit
+          in: query
+          schema: {type: integer, minimum: 1, maximum: 10, default: 5}
+      responses:
+        '200':
+          description: Recent alerts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/AlertListItem'}}
+
+  /transactions:
+    get:
+      tags: [02 Transactions Page]
+      operationId: listTransactions
+      summary: Search, filter, sort, and cursor-page transactions
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - {name: search, in: query, description: Exact or prefix match for transaction/account/payee ID; description contains match, schema: {type: string, maxLength: 200}}
+        - {name: status, in: query, schema: {type: array, items: {$ref: '#/components/schemas/TransactionStatus'}}, style: form, explode: false}
+        - {name: type, in: query, schema: {type: array, items: {$ref: '#/components/schemas/TransactionType'}}, style: form, explode: false}
+        - {name: currency, in: query, schema: {$ref: '#/components/schemas/Currency'}}
+        - {name: channel, in: query, schema: {$ref: '#/components/schemas/Channel'}}
+        - {name: countryCode, in: query, schema: {$ref: '#/components/schemas/CountryCode'}}
+        - {name: hasAlert, in: query, schema: {type: boolean}}
+        - {name: from, in: query, schema: {type: string, format: date-time}}
+        - {name: to, in: query, schema: {type: string, format: date-time}}
+        - {name: minAmount, in: query, schema: {$ref: '#/components/schemas/Amount'}}
+        - {name: maxAmount, in: query, schema: {$ref: '#/components/schemas/Amount'}}
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Transaction cursor page ordered by transactionTime DESC, id DESC
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TransactionPageResponse'}
+        '400': {$ref: '#/components/responses/ValidationError'}
+        '500': {$ref: '#/components/responses/InternalError'}
+    post:
+      tags: [06 System Integration]
+      operationId: createTransaction
+      summary: Create a transaction and synchronously evaluate active rules when status is COMPLETED
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/OptionalIdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CreateTransactionRequest'}
+            examples:
+              highValueDebit:
+                value:
+                  id: TX-10001
+                  accountId: ACC-001
+                  payeeId: PAYEE-NEW
+                  amount: '15000.00'
+                  currency: USD
+                  type: DEBIT
+                  status: COMPLETED
+                  transactionTime: '2026-07-27T10:20:00Z'
+                  channel: APP
+                  countryCode: US
+      responses:
+        '201':
+          description: Created and evaluated
+          headers:
+            Idempotent-Replay: {$ref: '#/components/headers/IdempotentReplay'}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TransactionCreateResponse'}
+        '200':
+          description: Identical transaction replayed without reevaluation
+          headers:
+            Idempotent-Replay: {$ref: '#/components/headers/IdempotentReplay'}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TransactionCreateResponse'}
+        '400': {$ref: '#/components/responses/ValidationError'}
+        '404': {$ref: '#/components/responses/NotFoundError'}
+        '409': {$ref: '#/components/responses/ConflictError'}
+        '500': {$ref: '#/components/responses/InternalError'}
+  /transactions/{transactionId}:
+    get:
+      tags: [03 Transaction Detail Page]
+      operationId: getTransactionDetail
+      summary: Get complete transaction detail and related alert summaries
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/TransactionId'
+      responses:
+        '200':
+          description: Transaction detail
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TransactionDetailResponse'}
+        '404': {$ref: '#/components/responses/NotFoundError'}
+  /transactions/{transactionId}/alerts:
+    get:
+      tags: [03 Transaction Detail Page]
+      operationId: listTransactionAlerts
+      summary: Get all alerts linked to a transaction
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/TransactionId'
+      responses:
+        '200':
+          description: Linked alerts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/AlertListItem'}}
+        '404': {$ref: '#/components/responses/NotFoundError'}
+  /transactions/{transactionId}/status:
+    patch:
+      tags: [06 System Integration]
+      operationId: updateTransactionStatus
+      summary: Apply a legal transaction status transition
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/OptionalIdempotencyKey'
+        - $ref: '#/components/parameters/TransactionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/UpdateTransactionStatusRequest'}
+      responses:
+        '200':
+          description: Status updated; entering COMPLETED evaluates rules exactly once
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TransactionCreateResponse'}
+        '400': {$ref: '#/components/responses/ValidationError'}
+        '404': {$ref: '#/components/responses/NotFoundError'}
+        '409': {$ref: '#/components/responses/ConflictError'}
+
+  /alerts:
+    get:
+      tags: [04 Alerts Console Page]
+      operationId: listAlerts
+      summary: Search, filter, sort, and cursor-page alerts
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - {name: search, in: query, schema: {type: string, maxLength: 200}}
+        - {name: status, in: query, schema: {type: array, items: {$ref: '#/components/schemas/AlertStatus'}}, style: form, explode: false}
+        - {name: severity, in: query, schema: {type: array, items: {$ref: '#/components/schemas/Severity'}}, style: form, explode: false}
+        - {name: ruleType, in: query, schema: {type: array, items: {$ref: '#/components/schemas/RuleType'}}, style: form, explode: false}
+        - {name: accountId, in: query, schema: {type: string, maxLength: 64}}
+        - {name: payeeId, in: query, schema: {type: string, maxLength: 64}}
+        - {name: terminal, in: query, schema: {type: boolean}}
+        - {name: from, in: query, schema: {type: string, format: date-time}}
+        - {name: to, in: query, schema: {type: string, format: date-time}}
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Alert page ordered by terminalRank, severityRank, createdAt DESC, id DESC
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AlertPageResponse'}
+        '400': {$ref: '#/components/responses/ValidationError'}
+  /alerts/polling-summary:
+    get:
+      tags: [04 Alerts Console Page]
+      operationId: getAlertPollingSummary
+      summary: Poll for new alerts without reordering the current table
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: since
+          in: query
+          required: true
+          schema: {type: string, format: date-time}
+      responses:
+        '200':
+          description: New alert counters and newest watermark
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AlertPollingSummaryResponse'}
+        '400': {$ref: '#/components/responses/ValidationError'}
+  /alerts/batch-dismiss:
+    post:
+      tags: [04 Alerts Console Page]
+      operationId: batchDismissAlerts
+      summary: Dismiss 1 to 100 OPEN or ACKNOWLEDGED alerts with partial success
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/RequiredIdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/BatchDismissRequest'}
+      responses:
+        '200':
+          description: Batch processed; individual results show success or failure
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/BatchDismissResponse'}
+        '400': {$ref: '#/components/responses/ValidationError'}
+        '409': {$ref: '#/components/responses/ConflictError'}
+
+  /alerts/{alertId}:
+    get:
+      tags: [05 Alert Detail Page]
+      operationId: getAlertDetail
+      summary: Get alert summary, trigger context, rule snapshot, and action availability
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/AlertId'
+      responses:
+        '200':
+          description: Alert detail
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AlertDetailResponse'}
+        '404': {$ref: '#/components/responses/NotFoundError'}
+  /alerts/{alertId}/transactions:
+    get:
+      tags: [05 Alert Detail Page]
+      operationId: listAlertTransactions
+      summary: Get transactions linked to the alert episode
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/AlertId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Linked transaction cursor page
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TransactionPageResponse'}
+        '404': {$ref: '#/components/responses/NotFoundError'}
+  /alerts/{alertId}/history:
+    get:
+      tags: [05 Alert Detail Page]
+      operationId: getAlertHistory
+      summary: Get append-only alert history in chronological order
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/AlertId'
+      responses:
+        '200':
+          description: Alert timeline
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AlertHistoryResponse'}
+        '404': {$ref: '#/components/responses/NotFoundError'}
+  /alerts/{alertId}/acknowledge:
+    post:
+      tags: [05 Alert Detail Page]
+      operationId: acknowledgeAlert
+      summary: Move OPEN to ACKNOWLEDGED
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/RequiredIdempotencyKey'
+        - $ref: '#/components/parameters/AlertId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AlertActionRequest'}
+      responses:
+        '200': {description: Updated alert, content: {application/json: {schema: {$ref: '#/components/schemas/AlertDetailResponse'}}}}
+        '400': {$ref: '#/components/responses/ValidationError'}
+        '404': {$ref: '#/components/responses/NotFoundError'}
+        '409': {$ref: '#/components/responses/ConflictError'}
+  /alerts/{alertId}/investigate:
+    post:
+      tags: [05 Alert Detail Page]
+      operationId: investigateAlert
+      summary: Move ACKNOWLEDGED to INVESTIGATING
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/RequiredIdempotencyKey'
+        - $ref: '#/components/parameters/AlertId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AlertActionRequest'}
+      responses:
+        '200': {description: Updated alert, content: {application/json: {schema: {$ref: '#/components/schemas/AlertDetailResponse'}}}}
+        '400': {$ref: '#/components/responses/ValidationError'}
+        '404': {$ref: '#/components/responses/NotFoundError'}
+        '409': {$ref: '#/components/responses/ConflictError'}
+  /alerts/{alertId}/close:
+    post:
+      tags: [05 Alert Detail Page]
+      operationId: closeAlert
+      summary: Move INVESTIGATING to CLOSED; resolution code and note are required
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/RequiredIdempotencyKey'
+        - $ref: '#/components/parameters/AlertId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CloseAlertRequest'}
+      responses:
+        '200': {description: Updated alert, content: {application/json: {schema: {$ref: '#/components/schemas/AlertDetailResponse'}}}}
+        '400': {$ref: '#/components/responses/ValidationError'}
+        '404': {$ref: '#/components/responses/NotFoundError'}
+        '409': {$ref: '#/components/responses/ConflictError'}
+  /alerts/{alertId}/dismiss:
+    post:
+      tags: [05 Alert Detail Page]
+      operationId: dismissAlert
+      summary: Move OPEN, ACKNOWLEDGED, or INVESTIGATING to DISMISSED; note is required
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/RequiredIdempotencyKey'
+        - $ref: '#/components/parameters/AlertId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/DismissAlertRequest'}
+      responses:
+        '200': {description: Updated alert, content: {application/json: {schema: {$ref: '#/components/schemas/AlertDetailResponse'}}}}
+        '400': {$ref: '#/components/responses/ValidationError'}
+        '404': {$ref: '#/components/responses/NotFoundError'}
+        '409': {$ref: '#/components/responses/ConflictError'}
+
+  /rules:
+    get:
+      tags: [07 Reference Data]
+      operationId: listRules
+      summary: Read current rule definitions; there is no MVP rule-management page
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Rules
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/RuleSummary'}}
+  /metadata/enums:
+    get:
+      tags: [07 Reference Data]
+      operationId: getEnumMetadata
+      summary: Get enum values and UI labels
+      responses:
+        '200':
+          description: Enum metadata
+          content:
+            application/json:
+              schema: {type: object, additionalProperties: {type: array, items: {type: string}}}
+  /health/ready:
+    get:
+      tags: [07 Reference Data]
+      operationId: readiness
+      summary: Readiness probe
+      responses:
+        '200': {description: Ready}
+        '503': {description: Not ready}
+
+components:
+  parameters:
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema: {type: string, maxLength: 128}
+    OptionalIdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: {type: string, minLength: 8, maxLength: 128}
+    RequiredIdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: {type: string, minLength: 8, maxLength: 128}
+    Limit:
+      name: limit
+      in: query
+      schema: {type: integer, enum: [25, 50, 100], default: 50}
+    Cursor:
+      name: cursor
+      in: query
+      schema: {type: string, maxLength: 2048}
+    TransactionId:
+      name: transactionId
+      in: path
+      required: true
+      schema: {type: string, minLength: 1, maxLength: 64}
+    AlertId:
+      name: alertId
+      in: path
+      required: true
+      schema: {type: string, minLength: 1, maxLength: 64}
+  headers:
+    IdempotentReplay:
+      description: true when the first stored response is returned without re-executing the operation
+      schema: {type: boolean}
+  responses:
+    ValidationError:
+      description: Request validation failed
+      content: {application/json: {schema: {$ref: '#/components/schemas/ErrorResponse'}}}
+    NotFoundError:
+      description: Resource not found
+      content: {application/json: {schema: {$ref: '#/components/schemas/ErrorResponse'}}}
+    ConflictError:
+      description: Version, state, duplicate payload, cursor, or idempotency conflict
+      content: {application/json: {schema: {$ref: '#/components/schemas/ErrorResponse'}}}
+    InternalError:
+      description: Unexpected server or rule evaluation error
+      content: {application/json: {schema: {$ref: '#/components/schemas/ErrorResponse'}}}
+  schemas:
+    Amount:
+      type: string
+      pattern: '^[0-9]{1,15}(\.[0-9]{1,4})?$'
+      example: '15000.00'
+    Currency: {type: string, pattern: '^[A-Z]{3}$', example: USD}
+    CountryCode: {type: string, pattern: '^[A-Z]{2}$', example: US}
+    TransactionStatus: {type: string, enum: [PENDING, COMPLETED, FAILED, CANCELLED, REVERSED]}
+    TransactionType: {type: string, enum: [DEBIT, CREDIT, REFUND]}
+    Channel: {type: string, enum: [WEB, APP, API, BRANCH]}
+    PaymentMethod: {type: string, enum: [BANK_TRANSFER, CARD, WALLET]}
+    AlertStatus: {type: string, enum: [OPEN, ACKNOWLEDGED, INVESTIGATING, CLOSED, DISMISSED]}
+    Severity: {type: string, enum: [LOW, MEDIUM, HIGH]}
+    RuleType: {type: string, enum: [AMOUNT_THRESHOLD, VELOCITY, NEW_PAYEE, DAILY_LIMIT]}
+    ResolutionCode: {type: string, enum: [LEGITIMATE_ACTIVITY, FALSE_POSITIVE, DUPLICATE_ALERT, RULE_CONFIGURATION_ISSUE, SUSPICIOUS_ACTIVITY, OTHER]}
+    PageInfo:
+      type: object
+      required: [hasMore, limit]
+      properties:
+        nextCursor: {type: string, nullable: true}
+        hasMore: {type: boolean}
+        limit: {type: integer}
+    DashboardSummaryResponse:
+      type: object
+      required: [utcDate, todayTransactions, todayAlerts, openAlerts, highNonTerminalAlerts]
+      properties:
+        utcDate: {type: string, format: date}
+        todayTransactions: {type: integer, minimum: 0}
+        todayAlerts: {type: integer, minimum: 0}
+        openAlerts: {type: integer, minimum: 0}
+        highNonTerminalAlerts: {type: integer, minimum: 0}
+        completedTransactionAmount: {$ref: '#/components/schemas/Amount'}
+        bySeverity: {type: object, additionalProperties: {type: integer}}
+        byStatus: {type: object, additionalProperties: {type: integer}}
+        generatedAt: {type: string, format: date-time}
+    DashboardTrendsResponse:
+      type: object
+      required: [points]
+      properties:
+        points:
+          type: array
+          items:
+            type: object
+            required: [utcDate, transactions, alerts]
+            properties:
+              utcDate: {type: string, format: date}
+              transactions: {type: integer}
+              alerts: {type: integer}
+              highAlerts: {type: integer}
+    TransactionListItem:
+      type: object
+      required: [id, accountId, payeeId, amount, currency, type, status, transactionTime, receivedAt, alertCount, version]
+      properties:
+        id: {type: string}
+        accountId: {type: string}
+        accountDisplayName: {type: string}
+        payeeId: {type: string}
+        payeeDisplayName: {type: string}
+        amount: {$ref: '#/components/schemas/Amount'}
+        currency: {$ref: '#/components/schemas/Currency'}
+        type: {$ref: '#/components/schemas/TransactionType'}
+        status: {$ref: '#/components/schemas/TransactionStatus'}
+        transactionTime: {type: string, format: date-time}
+        receivedAt: {type: string, format: date-time}
+        channel: {$ref: '#/components/schemas/Channel'}
+        countryCode: {$ref: '#/components/schemas/CountryCode'}
+        alertCount: {type: integer, minimum: 0}
+        version: {type: integer, minimum: 0}
+    TransactionPageResponse:
+      type: object
+      required: [items, pageInfo]
+      properties:
+        items: {type: array, items: {$ref: '#/components/schemas/TransactionListItem'}}
+        pageInfo: {$ref: '#/components/schemas/PageInfo'}
+    AccountSummary:
+      type: object
+      properties:
+        id: {type: string}
+        displayName: {type: string}
+        maskedAccountNumber: {type: string}
+        countryCode: {$ref: '#/components/schemas/CountryCode'}
+        riskLevel: {$ref: '#/components/schemas/Severity'}
+        status: {type: string}
+    PayeeSummary:
+      type: object
+      properties:
+        id: {type: string}
+        displayName: {type: string}
+        maskedAccountNumber: {type: string}
+        countryCode: {$ref: '#/components/schemas/CountryCode'}
+        status: {type: string}
+    TransactionDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/TransactionListItem'
+        - type: object
+          properties:
+            account: {$ref: '#/components/schemas/AccountSummary'}
+            payee: {$ref: '#/components/schemas/PayeeSummary'}
+            description: {type: string, nullable: true}
+            ipAddressMasked: {type: string, nullable: true}
+            deviceIdMasked: {type: string, nullable: true}
+            paymentMethod: {$ref: '#/components/schemas/PaymentMethod'}
+            referenceTransactionId: {type: string, nullable: true}
+            evaluationMode: {type: string, enum: [REAL_TIME, LATE_ARRIVAL], nullable: true}
+            evaluatedAt: {type: string, format: date-time, nullable: true}
+            relatedAlerts: {type: array, items: {$ref: '#/components/schemas/AlertListItem'}}
+    CreateTransactionRequest:
+      type: object
+      required: [id, accountId, payeeId, amount, currency, type, status, transactionTime]
+      additionalProperties: false
+      properties:
+        id: {type: string, minLength: 1, maxLength: 64}
+        accountId: {type: string, minLength: 1, maxLength: 64}
+        payeeId: {type: string, minLength: 1, maxLength: 64}
+        amount: {$ref: '#/components/schemas/Amount'}
+        currency: {$ref: '#/components/schemas/Currency'}
+        type: {$ref: '#/components/schemas/TransactionType'}
+        status: {$ref: '#/components/schemas/TransactionStatus'}
+        transactionTime: {type: string, format: date-time}
+        description: {type: string, maxLength: 500}
+        ipAddress: {type: string, maxLength: 45}
+        deviceId: {type: string, maxLength: 256}
+        channel: {$ref: '#/components/schemas/Channel'}
+        countryCode: {$ref: '#/components/schemas/CountryCode'}
+        paymentMethod: {$ref: '#/components/schemas/PaymentMethod'}
+        referenceTransactionId: {type: string, maxLength: 64}
+    TransactionCreateResponse:
+      type: object
+      required: [transaction, evaluation]
+      properties:
+        transaction: {$ref: '#/components/schemas/TransactionDetailResponse'}
+        evaluation:
+          type: object
+          required: [evaluated, triggeredAlertCount, triggeredAlerts]
+          properties:
+            evaluated: {type: boolean}
+            evaluationMode: {type: string, enum: [REAL_TIME, LATE_ARRIVAL], nullable: true}
+            triggeredAlertCount: {type: integer}
+            triggeredAlerts: {type: array, items: {$ref: '#/components/schemas/AlertListItem'}}
+    UpdateTransactionStatusRequest:
+      type: object
+      required: [targetStatus, expectedVersion]
+      additionalProperties: false
+      properties:
+        targetStatus: {$ref: '#/components/schemas/TransactionStatus'}
+        expectedVersion: {type: integer, minimum: 0}
+        reason: {type: string, maxLength: 1000}
+    AlertListItem:
+      type: object
+      required: [id, ruleId, ruleName, ruleType, accountId, severity, status, reasonText, transactionCount, episodeStart, lastTriggeredAt, createdAt, version]
+      properties:
+        id: {type: string}
+        ruleId: {type: string}
+        ruleName: {type: string}
+        ruleType: {$ref: '#/components/schemas/RuleType'}
+        accountId: {type: string}
+        accountDisplayName: {type: string}
+        primaryPayeeId: {type: string, nullable: true}
+        primaryPayeeDisplayName: {type: string, nullable: true}
+        severity: {$ref: '#/components/schemas/Severity'}
+        status: {$ref: '#/components/schemas/AlertStatus'}
+        reasonText: {type: string}
+        transactionCount: {type: integer}
+        cumulativeAmount: {$ref: '#/components/schemas/Amount'}
+        episodeStart: {type: string, format: date-time}
+        lastTriggeredAt: {type: string, format: date-time}
+        createdAt: {type: string, format: date-time}
+        resolutionCode: {$ref: '#/components/schemas/ResolutionCode'}
+        version: {type: integer, minimum: 1}
+    AlertPageResponse:
+      type: object
+      required: [items, pageInfo]
+      properties:
+        items: {type: array, items: {$ref: '#/components/schemas/AlertListItem'}}
+        pageInfo: {$ref: '#/components/schemas/PageInfo'}
+    AlertPollingSummaryResponse:
+      type: object
+      required: [since, newestCreatedAt, newAlertCount, newHighAlertCount]
+      properties:
+        since: {type: string, format: date-time}
+        newestCreatedAt: {type: string, format: date-time}
+        newAlertCount: {type: integer}
+        newHighAlertCount: {type: integer}
+    AllowedActions:
+      type: object
+      required: [acknowledge, investigate, close, dismiss]
+      properties:
+        acknowledge: {type: boolean}
+        investigate: {type: boolean}
+        close: {type: boolean}
+        dismiss: {type: boolean}
+    AlertDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/AlertListItem'
+        - type: object
+          properties:
+            ruleVersion: {type: integer}
+            firstTriggerTransactionId: {type: string}
+            ruleSnapshot: {type: object, additionalProperties: true}
+            triggerContext: {type: object, additionalProperties: true}
+            resolutionNotes: {type: string, nullable: true}
+            acknowledgedAt: {type: string, format: date-time, nullable: true}
+            investigationStartedAt: {type: string, format: date-time, nullable: true}
+            closedAt: {type: string, format: date-time, nullable: true}
+            dismissedAt: {type: string, format: date-time, nullable: true}
+            allowedActions: {$ref: '#/components/schemas/AllowedActions'}
+    AlertHistoryEvent:
+      type: object
+      required: [id, eventType, changedAt, changedBy, source]
+      properties:
+        id: {type: integer}
+        eventType: {type: string, enum: [CREATED, TRANSACTION_LINKED, TRIGGER_METRICS_UPDATED, STATUS_CHANGED, RESOLUTION_UPDATED]}
+        fromStatus: {$ref: '#/components/schemas/AlertStatus'}
+        toStatus: {$ref: '#/components/schemas/AlertStatus'}
+        note: {type: string, nullable: true}
+        previousValues: {type: object, nullable: true, additionalProperties: true}
+        newValues: {type: object, nullable: true, additionalProperties: true}
+        changedAt: {type: string, format: date-time}
+        changedBy: {type: string}
+        source: {type: string, enum: [SYSTEM, OPERATOR, BATCH]}
+        correlationId: {type: string}
+    AlertHistoryResponse:
+      type: object
+      required: [items]
+      properties:
+        items: {type: array, items: {$ref: '#/components/schemas/AlertHistoryEvent'}}
+    AlertActionRequest:
+      type: object
+      required: [expectedStatus, expectedVersion]
+      additionalProperties: false
+      properties:
+        expectedStatus: {$ref: '#/components/schemas/AlertStatus'}
+        expectedVersion: {type: integer, minimum: 1}
+        note: {type: string, maxLength: 2000}
+    CloseAlertRequest:
+      type: object
+      required: [expectedStatus, expectedVersion, resolutionCode, note]
+      additionalProperties: false
+      properties:
+        expectedStatus: {$ref: '#/components/schemas/AlertStatus'}
+        expectedVersion: {type: integer, minimum: 1}
+        resolutionCode: {$ref: '#/components/schemas/ResolutionCode'}
+        note: {type: string, minLength: 1, maxLength: 2000}
+    DismissAlertRequest:
+      type: object
+      required: [expectedStatus, expectedVersion, note]
+      additionalProperties: false
+      properties:
+        expectedStatus: {$ref: '#/components/schemas/AlertStatus'}
+        expectedVersion: {type: integer, minimum: 1}
+        resolutionCode: {$ref: '#/components/schemas/ResolutionCode'}
+        note: {type: string, minLength: 1, maxLength: 2000}
+    BatchDismissRequest:
+      type: object
+      required: [alerts, note]
+      additionalProperties: false
+      properties:
+        alerts:
+          type: array
+          minItems: 1
+          maxItems: 100
+          uniqueItems: true
+          items:
+            type: object
+            required: [alertId, expectedStatus, expectedVersion]
+            properties:
+              alertId: {type: string}
+              expectedStatus: {$ref: '#/components/schemas/AlertStatus'}
+              expectedVersion: {type: integer, minimum: 1}
+        resolutionCode: {$ref: '#/components/schemas/ResolutionCode'}
+        note: {type: string, minLength: 1, maxLength: 2000}
+    BatchDismissResponse:
+      type: object
+      required: [requested, succeeded, failed, results]
+      properties:
+        requested: {type: integer}
+        succeeded: {type: integer}
+        failed: {type: integer}
+        results:
+          type: array
+          items:
+            type: object
+            required: [alertId, success]
+            properties:
+              alertId: {type: string}
+              success: {type: boolean}
+              status: {$ref: '#/components/schemas/AlertStatus'}
+              version: {type: integer}
+              errorCode: {type: string, nullable: true}
+              message: {type: string, nullable: true}
+    RuleSummary:
+      type: object
+      required: [id, name, type, severity, active, config, version, updatedAt]
+      properties:
+        id: {type: string}
+        name: {type: string}
+        type: {$ref: '#/components/schemas/RuleType'}
+        severity: {$ref: '#/components/schemas/Severity'}
+        active: {type: boolean}
+        config: {type: object, additionalProperties: true}
+        version: {type: integer}
+        updatedAt: {type: string, format: date-time}
+    FieldError:
+      type: object
+      required: [field, message]
+      properties:
+        field: {type: string}
+        message: {type: string}
+        rejectedValue: {nullable: true}
+    ErrorResponse:
+      type: object
+      required: [code, message, correlationId]
+      properties:
+        code: {type: string}
+        message: {type: string}
+        correlationId: {type: string}
+        fieldErrors: {type: array, items: {$ref: '#/components/schemas/FieldError'}}
+        currentState: {type: object, nullable: true, additionalProperties: true}
+        details: {type: object, additionalProperties: true}
