@@ -136,6 +136,8 @@ public class TransactionService {
         // Check for alerts
         List<Alert> alerts = alertRepository.findByTransactionId(tx.getTransactionId());
         r.setHasAlert(!alerts.isEmpty());
+        r.setAlertCount(alerts.size());
+        r.setAlertIds(alerts.stream().map(Alert::getAlertId).collect(Collectors.toList()));
         if (!alerts.isEmpty()) {
             Alert firstAlert = alerts.get(0);
             r.setAlertId(firstAlert.getAlertId());

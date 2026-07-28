@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 @Data
 public class TransactionResponse {
@@ -29,4 +30,6 @@ public class TransactionResponse {
     private Boolean hasAlert;
     private String alertId;
     private String alertStatus;
+    private Integer alertCount;
+    private List<String> alertIds;
 }

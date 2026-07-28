@@ -8,7 +8,7 @@ import {
   ArrowLeftOutlined,
   ExclamationCircleOutlined,
 } from '@ant-design/icons';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
 import {
   getAlert, acknowledgeAlert, investigateAlert, closeAlert, dismissAlert,
@@ -55,19 +55,6 @@ function StatusBreadcrumb({ alertId }: { alertId: string }) {
 }
 
 function AlertSummaryCard({ alert, onAction }: { alert: AlertDetail; onAction: (action: string) => void }) {
-  const actionButtons: { label: string; action: string; danger?: boolean; type?: 'primary' | 'default' }[] = [];
-
-  if (alert.status === 'OPEN') {
-    actionButtons.push({ label: 'Acknowledge', action: 'acknowledge', type: 'primary' });
-    actionButtons.push({ label: 'Dismiss', action: 'dismiss', danger: true });
-  } else if (alert.status === 'ACKNOWLEDGED') {
-    actionButtons.push({ label: 'Start Investigation', action: 'investigate', type: 'primary' });
-    actionButtons.push({ label: 'Dismiss', action: 'dismiss', danger: true });
-  } else if (alert.status === 'INVESTIGATING') {
-    actionButtons.push({ label: 'Close Alert', action: 'close', type: 'primary' });
-    actionButtons.push({ label: 'Dismiss', action: 'dismiss', danger: true });
-  }
-
   return (
     <Card className="alert-summary-card" style={{ marginBottom: 24 }}>
       <Row align="middle" gutter={24} className="alert-summary-grid">
@@ -106,24 +93,6 @@ function AlertSummaryCard({ alert, onAction }: { alert: AlertDetail; onAction: (
             </div>
           </Space>
         </Col>
-
-        {actionButtons.length > 0 && (
-          <Col className="alert-summary-actions" style={{ minWidth: 160 }}>
-            <Space direction="vertical" style={{ width: '100%' }}>
-              {actionButtons.map(btn => (
-                <Button
-                  key={btn.action}
-                  type={btn.type || 'default'}
-                  danger={btn.danger}
-                  style={{ width: '100%' }}
-                  onClick={() => onAction(btn.action)}
-                >
-                  {btn.label}
-                </Button>
-              ))}
-            </Space>
-          </Col>
-        )}
       </Row>
     </Card>
   );
@@ -384,7 +353,17 @@ export default function AlertDetail() {
   };
 
   const txColumns: ColumnsType<Transaction> = [
-    { title: 'Transaction ID', dataIndex: 'transactionId', width: 150, ellipsis: true, render: v => <Text code style={{ fontSize: 13 }}>{v}</Text> },
+    {
+      title: 'Transaction ID',
+      dataIndex: 'transactionId',
+      width: 150,
+      ellipsis: true,
+      render: (v: string) => (
+        <Link to={`/transactions/${v}`}>
+          <Text code style={{ fontSize: 13 }}>{v}</Text>
+        </Link>
+      ),
+    },
     { title: 'Payee', dataIndex: 'payeeName', ellipsis: true, render: (v, r) => v || r.payeeId || '-' },
     {
       title: 'Amount', dataIndex: 'amount', align: 'right', width: 130,

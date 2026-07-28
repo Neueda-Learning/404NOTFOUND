@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import AlertsList from './pages/AlertsList';
 import AlertDetail from './pages/AlertDetail';
 import TransactionsList from './pages/TransactionsList';
+import TransactionDetail from './pages/TransactionDetail';
 import RulesList from './pages/RulesList';
 import 'antd/dist/reset.css';
 import './App.css';
@@ -59,6 +60,7 @@ function AppShell() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/alerts" element={<AlertsList />} />
             <Route path="/alerts/:id" element={<AlertDetail />} />
+            <Route path="/transactions/:id" element={<TransactionDetail />} />
             <Route path="/transactions" element={<TransactionsList />} />
             <Route path="/rules" element={<RulesList />} />
           </Routes>
