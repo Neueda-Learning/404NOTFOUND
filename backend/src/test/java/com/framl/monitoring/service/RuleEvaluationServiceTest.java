@@ -334,7 +334,7 @@ class RuleEvaluationServiceTest {
         
         Alert alert = alertCaptor.getValue();
         assertNotNull(alert.getAlertId());
-        assertTrue(alert.getAlertId().matches("^[0-9a-fA-F-]{36}$"));
+        assertTrue(alert.getAlertId().matches("^ALT-[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$"));
         assertEquals("Test Rule - ACC-001", alert.getTitle());
         assertEquals("TXN-001", alert.getPrimaryTransactionId());
         assertEquals(BigDecimal.valueOf(5000), alert.getTotalAmount());

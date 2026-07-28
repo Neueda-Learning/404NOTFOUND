@@ -53,7 +53,7 @@ class RuleEvaluationServiceDedupTest {
     }
 
     @Test
-    void generatesUuidAndDeduplicatesOnRetryForSameTransaction() {
+    void generatesStandardizedAlertIdAndDeduplicatesOnRetryForSameTransaction() {
         Rule rule = amountThresholdRule();
         Transaction tx = completedDebitTransaction();
 
@@ -73,7 +73,7 @@ class RuleEvaluationServiceDedupTest {
 
         com.framl.monitoring.entity.Alert created = captor.getAllValues().get(0);
         assertNotNull(created.getAlertId());
-        assertTrue(created.getAlertId().matches("^[0-9a-fA-F-]{36}$"));
+        assertTrue(created.getAlertId().matches("^ALT-[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$"));
         assertTrue(created.getDeduplicationKey().startsWith("101|TX-001|AMOUNT_THRESHOLD"));
     }
 

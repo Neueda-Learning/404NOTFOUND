@@ -120,17 +120,17 @@ public class DataInitializer implements CommandLineRunner {
 
         transactionRepository.saveAll(List.of(tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9, tx10));
 
-        Alert alert1 = buildAlert("ALT-9001", "Large Transaction Alert", "ACC-1001", "PAY-2001", "TXN-9001",
+        Alert alert1 = buildAlert(seedAlertId(9001), "Large Transaction Alert", "ACC-1001", "PAY-2001", "TXN-9001",
             AlertSeverity.HIGH, AlertStatus.OPEN, 94, now.minus(6, ChronoUnit.HOURS), "Amount above $10,000", "Large Transaction Alert");
-        Alert alert2 = buildAlert("ALT-9002", "High Frequency Transactions", "ACC-1003", "PAY-2006", "TXN-9006",
+        Alert alert2 = buildAlert(seedAlertId(9002), "High Frequency Transactions", "ACC-1003", "PAY-2006", "TXN-9006",
             AlertSeverity.MEDIUM, AlertStatus.INVESTIGATING, 72, now.minus(3, ChronoUnit.DAYS), "Multiple transactions in 10 minutes", "High Frequency Transactions");
-        Alert alert3 = buildAlert("ALT-9003", "New Payee Transaction", "ACC-1002", "PAY-2003", "TXN-9003",
+        Alert alert3 = buildAlert(seedAlertId(9003), "New Payee Transaction", "ACC-1002", "PAY-2003", "TXN-9003",
             AlertSeverity.LOW, AlertStatus.ACKNOWLEDGED, 41, now.minus(28, ChronoUnit.HOURS), "First debit to a new payee", "New Payee Transaction");
-        Alert alert4 = buildAlert("ALT-9004", "Daily Limit Exceeded", "ACC-1004", "PAY-2009", "TXN-9009",
+        Alert alert4 = buildAlert(seedAlertId(9004), "Daily Limit Exceeded", "ACC-1004", "PAY-2009", "TXN-9009",
             AlertSeverity.HIGH, AlertStatus.OPEN, 98, now.minus(12, ChronoUnit.HOURS), "Daily debit total above $50,000", "Daily Limit Exceeded");
-        Alert alert5 = buildAlert("ALT-9005", "Large Transaction Alert", "ACC-1002", "PAY-2004", "TXN-9004",
+        Alert alert5 = buildAlert(seedAlertId(9005), "Large Transaction Alert", "ACC-1002", "PAY-2004", "TXN-9004",
             AlertSeverity.HIGH, AlertStatus.INVESTIGATING, 88, now.minus(2, ChronoUnit.DAYS), "Cross-border amount above threshold", "Large Transaction Alert");
-        Alert alert6 = buildAlert("ALT-9006", "Large Transaction Alert", "ACC-1001", "PAY-2002", "TXN-9002",
+        Alert alert6 = buildAlert(seedAlertId(9006), "Large Transaction Alert", "ACC-1001", "PAY-2002", "TXN-9002",
             AlertSeverity.HIGH, AlertStatus.OPEN, 86, now.minus(5, ChronoUnit.HOURS), "Additional high-value debit", "Large Transaction Alert");
 
         attachHistory(alert1, AlertStatus.OPEN, null, "Created from large-value debit");
@@ -204,6 +204,10 @@ public class DataInitializer implements CommandLineRunner {
         alert.setTriggerReason(triggerReason);
         alert.setVersion(1);
         return alert;
+        }
+
+        private String seedAlertId(int seed) {
+        return String.format("ALT-00000000-0000-0000-0000-%012d", seed);
         }
 
         private void attachHistory(Alert alert, AlertStatus toStatus, AlertStatus fromStatus, String comment) {

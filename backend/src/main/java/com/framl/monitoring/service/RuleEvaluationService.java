@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.List;
 import java.util.UUID;
 
@@ -256,7 +257,7 @@ public class RuleEvaluationService {
     }
 
     private String generateAlertId() {
-        return UUID.randomUUID().toString();
+        return "ALT-" + UUID.randomUUID().toString().toUpperCase(Locale.ROOT);
     }
 
     private String buildDeduplicationKey(Transaction tx, Rule rule, Integer timeWindow) {

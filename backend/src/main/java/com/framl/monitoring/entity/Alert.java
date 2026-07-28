@@ -26,7 +26,7 @@ import java.util.List;
 public class Alert {
 
     @Id
-    @Column(nullable = false, length = 36)
+    @Column(nullable = false, length = 40)
     private String alertId;
 
     @Column(nullable = false, length = 160)
