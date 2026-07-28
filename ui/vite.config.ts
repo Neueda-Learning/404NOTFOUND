@@ -10,7 +10,13 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html', 'json-summary'],
       reportsDirectory: 'coverage',
-      include: ['src/utils/format.ts'],
+      include: ['src/utils/format.ts', 'src/api/*.ts'],
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        statements: 70,
+        branches: 70,
+      },
     },
   },
   server: {
