@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { FC, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Row, Col, Card, Statistic, Typography, Spin, Alert,
@@ -14,18 +15,18 @@ import { severityColor } from '../utils/format';
 
 const { Title, Text } = Typography;
 
-const StatCard: React.FC<{
-  title: string; value: number | string; icon: React.ReactNode;
+const StatCard: FC<{
+  title: string; value: number | string; icon: ReactNode;
   color?: string; suffix?: string; precision?: number;
 }> = ({ title, value, icon, color = '#1890ff', suffix, precision }) => (
-  <Card bodyStyle={{ padding: '20px 24px' }}>
+  <Card styles={{ body: { padding: '20px 24px' } }}>
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <Statistic
         title={title}
         value={value}
         suffix={suffix}
         precision={precision}
-        valueStyle={{ color, fontSize: 28, fontWeight: 700 }}
+        styles={{ content: { color, fontSize: 28, fontWeight: 700 } }}
       />
       <div style={{
         width: 52, height: 52, borderRadius: '50%',
@@ -38,7 +39,7 @@ const StatCard: React.FC<{
   </Card>
 );
 
-const SimpleBarChart: React.FC<{ data: AlertTrendPoint[] }> = ({ data }) => {
+const SimpleBarChart: FC<{ data: AlertTrendPoint[] }> = ({ data }) => {
   const maxVal = Math.max(...data.map(d => d.total), 1);
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', height: 120, gap: 8, padding: '0 8px' }}>
@@ -112,7 +113,7 @@ export default function Dashboard() {
           <StatCard title="Today's Transactions" value={data.todaysTransactions} icon={<SwapOutlined />} color="#52c41a" />
         </Col>
         <Col xs={24} sm={12} lg={4}>
-          <StatCard title="Alert Rate" value={data.alertRate} suffix="%" precision={1} icon={<RiseOutlined />} color="#722ed1" />
+          <StatCard title="Alert Rate" value={data.alertRate} suffix="%" precision={1} icon={<RiseOutlined />} color="#225b7d" />
         </Col>
       </Row>
 

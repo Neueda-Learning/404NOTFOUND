@@ -33,10 +33,10 @@ function AppSider() {
       .find(k => location.pathname.startsWith(k)) ?? '/';
 
   return (
-    <Sider width={220} style={{ background: '#001529' }}>
-      <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        <Title level={5} style={{ color: '#fff', margin: 0 }}>🛡 FRAML Monitor</Title>
-        <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, marginTop: 2 }}>
+    <Sider width={236} className="app-sidebar">
+      <div className="brand-block">
+        <Title level={5} className="brand-title">FRAML Monitor</Title>
+        <div className="brand-subtitle">
           Transaction Monitoring
         </div>
       </div>
@@ -45,7 +45,7 @@ function AppSider() {
         mode="inline"
         selectedKeys={[selectedKey]}
         items={menuItems}
-        style={{ borderRight: 0 }}
+        className="app-menu"
       />
     </Sider>
   );
@@ -54,21 +54,16 @@ function AppSider() {
 function App() {
   return (
     <BrowserRouter>
-      <Layout style={{ minHeight: '100vh' }}>
+      <Layout className="app-frame">
         <AppSider />
-        <Layout>
-          <Header style={{
-            background: '#fff',
-            padding: '0 24px',
-            display: 'flex',
-            alignItems: 'center',
-            boxShadow: '0 1px 4px rgba(0,21,41,0.08)',
-          }}>
-            <Title level={5} style={{ margin: 0, color: '#001529' }}>
+        <Layout className="app-main">
+          <Header className="app-header">
+            <Title level={5} className="header-title">
               Transaction Monitoring &amp; Alerts Dashboard
             </Title>
+            <span className="header-pill">Live Monitoring</span>
           </Header>
-          <Content style={{ margin: '24px', background: '#f0f2f5' }}>
+          <Content className="app-content">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/alerts" element={<AlertsList />} />
