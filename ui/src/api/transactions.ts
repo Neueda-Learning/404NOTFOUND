@@ -13,8 +13,26 @@ export interface TransactionSearchParams {
   size?: number;
 }
 
+export interface CreateTransactionRequest {
+  transactionId: string;
+  accountId: string;
+  payeeId?: string;
+  payeeName?: string;
+  type: string;
+  amount: number;
+  currency: string;
+  status: string;
+  transactionTime: string;
+  paymentChannel?: string;
+  country?: string;
+  description?: string;
+}
+
 export const searchTransactions = (params: TransactionSearchParams) =>
   client.get<PageResponse<Transaction>>('/transactions', { params }).then(r => r.data);
 
 export const getTransaction = (id: string) =>
   client.get<Transaction>(`/transactions/${id}`).then(r => r.data);
+
+export const createTransaction = (req: CreateTransactionRequest) =>
+  client.post<Transaction>('/transactions', req).then(r => r.data);
