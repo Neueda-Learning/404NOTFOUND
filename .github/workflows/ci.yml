@@ -1,5 +1,8 @@
 name: CI
 
+env:
+  FRONTEND_DIR: ui
+
 on:
   pull_request:
     branches: [main, qa]
@@ -43,20 +46,20 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-          cache-dependency-path: ui/package-lock.json
+          cache-dependency-path: ${{ env.FRONTEND_DIR }}/package-lock.json
 
       - name: Install frontend dependencies
-        run: npm --prefix ui ci
+        run: npm --prefix $FRONTEND_DIR ci
 
       - name: Run frontend tests with coverage
-        run: npm --prefix ui run test:coverage
+        run: npm --prefix $FRONTEND_DIR run test:coverage
 
       - name: Build frontend
-        run: npm --prefix ui run build
+        run: npm --prefix $FRONTEND_DIR run build
 
       - name: Upload frontend coverage artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: frontend-coverage-report
-          path: ui/coverage/
+          path: ${{ env.FRONTEND_DIR }}/coverage/

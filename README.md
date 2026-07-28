@@ -8,6 +8,11 @@ A full-stack transaction monitoring and alerting system built with **React + Typ
 - Full alert lifecycle and audit trail
 - Rule governance with versioning and change log
 
+## Frontend Standard
+
+- The only official frontend in this repository is in `ui/`.
+- The legacy `front/` implementation has been removed and is no longer supported.
+
 ## Tech Stack
 
 | Layer     | Technology                                |
@@ -32,7 +37,7 @@ A full-stack transaction monitoring and alerting system built with **React + Typ
 │   │   └── service/      # Business logic & rule engine
 │   └── src/main/resources/
 │       └── application.yml
-└── ui/               # React frontend
+└── ui/               # Official React frontend
     ├── src/
     │   ├── api/       # Axios API clients
     │   ├── pages/     # Dashboard, Alerts, Transactions, Rules
