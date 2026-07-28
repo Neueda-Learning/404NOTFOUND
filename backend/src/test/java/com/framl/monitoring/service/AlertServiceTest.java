@@ -77,6 +77,19 @@ class AlertServiceTest {
                     pageable.getPageNumber() == 2 && pageable.getPageSize() == 20));
     }
 
+        @Test
+        void search_blankQueryIsTreatedAsNull() {
+                Page<Alert> emptyPage = Page.empty();
+                when(alertRepository.searchAlerts(any(), any(), any(), any(), any(), any(), any()))
+                                .thenReturn(emptyPage);
+
+                alertService.search(null, null, null, null, null, "   ", 0, 20);
+
+                verify(alertRepository).searchAlerts(
+                                isNull(), isNull(), isNull(),
+                                isNull(), isNull(), isNull(), any(Pageable.class));
+        }
+
     @Test
     void getById_returnsAlertDetails() {
         Alert alert = createTestAlert("ALT-2024-00001", AlertStatus.ACKNOWLEDGED, AlertSeverity.MEDIUM);

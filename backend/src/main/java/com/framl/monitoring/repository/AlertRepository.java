@@ -48,6 +48,6 @@ public interface AlertRepository extends JpaRepository<Alert, String> {
     List<Object[]> getTopTriggeredRules(@Param("start") Instant start);
 
     @Query("SELECT a FROM Alert a WHERE a.primaryTransactionId = :txId OR " +
-           "a.alertId IN (SELECT at.alert.alertId FROM AlertTransaction at WHERE at.transactionId = :txId)")
+           "EXISTS (SELECT 1 FROM AlertTransaction at WHERE at.alert = a AND at.transactionId = :txId)")
     List<Alert> findByTransactionId(@Param("txId") String txId);
 }

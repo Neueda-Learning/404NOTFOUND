@@ -158,6 +158,18 @@ class TransactionServiceTest {
     }
 
     @Test
+    void search_blankQueryIsTreatedAsNull() {
+        Page<Transaction> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 5), 0);
+        when(transactionRepository.searchTransactions(eq("ACC-S1"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null), any()))
+                .thenReturn(emptyPage);
+
+        var responsePage = transactionService.search("ACC-S1", null, null, null, null, null, "   ", 0, 5);
+
+        assertEquals(0, responsePage.getTotalElements());
+        verify(transactionRepository).searchTransactions(eq("ACC-S1"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null), any());
+    }
+
+    @Test
     void toResponse_setsAlertFieldsWhenAlertsExist() {
         Transaction tx = new Transaction();
         tx.setTransactionId("TXN-A1");

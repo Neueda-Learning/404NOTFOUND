@@ -19,7 +19,11 @@ import java.util.List;
         @Index(name = "idx_alert_status", columnList = "status"),
         @Index(name = "idx_alert_account", columnList = "accountId"),
         @Index(name = "idx_alert_created", columnList = "createdAt"),
-    @Index(name = "idx_alert_severity", columnList = "severity")
+        @Index(name = "idx_alert_severity", columnList = "severity"),
+        @Index(name = "idx_alert_status_created", columnList = "status, createdAt"),
+        @Index(name = "idx_alert_severity_created", columnList = "severity, createdAt"),
+        @Index(name = "idx_alert_account_created", columnList = "accountId, createdAt"),
+        @Index(name = "idx_alert_primary_tx", columnList = "primaryTransactionId")
 }, uniqueConstraints = {
     @UniqueConstraint(name = "uk_alert_deduplication_key", columnNames = "deduplicationKey")
 })

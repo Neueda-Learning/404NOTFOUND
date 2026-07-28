@@ -99,7 +99,7 @@ public class TransactionService {
                                                      Instant fromTime, Instant toTime, String q,
                                                      int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("transactionTime").descending());
-        String likeQ = q != null ? "%" + q + "%" : null;
+        String likeQ = toLikeQuery(q);
 
         Page<Transaction> result = transactionRepository.searchTransactions(
                 accountId, payeeId, status, type, fromTime, toTime, likeQ, pageable);
@@ -145,6 +145,17 @@ public class TransactionService {
         }
 
         return r;
+    }
+
+    private String toLikeQuery(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String trimmed = raw.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        return "%" + trimmed + "%";
     }
 
     private <T> PageResponse<T> buildPage(Page<T> p) {

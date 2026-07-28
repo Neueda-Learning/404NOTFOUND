@@ -14,6 +14,9 @@ import java.time.Instant;
 @Entity
 @Table(name = "transactions", indexes = {
         @Index(name = "idx_tx_account_time", columnList = "accountId, transactionTime"),
+    @Index(name = "idx_tx_account_status_type_time", columnList = "accountId, status, type, transactionTime"),
+    @Index(name = "idx_tx_account_currency_status_type_time", columnList = "accountId, currency, status, type, transactionTime"),
+    @Index(name = "idx_tx_account_payee_status_time", columnList = "accountId, payeeId, status, transactionTime"),
         @Index(name = "idx_tx_payee", columnList = "payeeId"),
         @Index(name = "idx_tx_status", columnList = "status"),
         @Index(name = "idx_tx_time", columnList = "transactionTime")
