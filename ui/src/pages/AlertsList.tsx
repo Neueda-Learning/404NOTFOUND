@@ -13,7 +13,7 @@ import { searchAlerts } from '../api/alerts';
 import { getAlert } from '../api/alerts';
 import type { AlertListItem, AlertDetail, AlertStatus, AlertSeverity } from '../types';
 import {
-  formatTime, severityColor, statusColor, formatAmount, resolutionCodeLabels,
+  formatTime, severityColor, statusColor, formatAmount,
 } from '../utils/format';
 
 const { Title, Text } = Typography;
@@ -98,7 +98,7 @@ export default function AlertsList() {
       width: 160,
       render: (id: string) => (
         <Space>
-          <Text code style={{ fontSize: 13 }}>{id}</Text>
+          <Text code style={{ fontSize: 16 }}>{id}</Text>
           <Tooltip title="Copy">
             <CopyOutlined
               style={{ cursor: 'pointer', color: '#1890ff' }}
@@ -114,7 +114,7 @@ export default function AlertsList() {
       width: 160,
       render: (v: string) => (
         <Tooltip title={v}>
-          <span style={{ fontSize: 13 }}>{formatTime(v)}</span>
+          <span style={{ fontSize: 16 }}>{formatTime(v)}</span>
         </Tooltip>
       ),
     },
@@ -128,7 +128,7 @@ export default function AlertsList() {
       render: (v: string | undefined) =>
         v ? (
           <Link to={`/transactions/${v}`} onClick={e => e.stopPropagation()}>
-            <Text code style={{ fontSize: 12 }}>{v}</Text>
+            <Text code style={{ fontSize: 15 }}>{v}</Text>
           </Link>
         ) : '-',
     },
@@ -166,12 +166,6 @@ export default function AlertsList() {
           text={<Tag color={statusColor[v]} className={`monitor-status-tag ${alertStatusClass[v]}`}>{v}</Tag>}
         />
       ),
-    },
-    {
-      title: 'Resolution',
-      dataIndex: 'resolutionCode',
-      width: 120,
-      render: (v, r) => r.status === 'CLOSED' && v ? <Tag>{resolutionCodeLabels[v] || v}</Tag> : <Text type="secondary">-</Text>,
     },
     {
       title: 'Action',

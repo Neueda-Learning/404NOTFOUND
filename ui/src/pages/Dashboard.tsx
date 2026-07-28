@@ -158,9 +158,6 @@ export default function Dashboard() {
               <span className="hero-chip hero-chip-success">{data.todaysTransactions} Transactions</span>
             </div>
           </div>
-          <Button type="primary" size="large" onClick={() => navigate('/alerts')}>
-            Go To Alerts Queue
-          </Button>
         </div>
       </Card>
 

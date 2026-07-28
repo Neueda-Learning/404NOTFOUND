@@ -40,4 +40,5 @@ public class TransactionRequest {
     private String paymentChannel;
     private String country;
     private String description;
+
 }

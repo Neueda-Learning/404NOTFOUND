@@ -31,8 +31,8 @@ body,
 
 body {
 	font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
-	font-size: 14px;
-	line-height: 1.5;
+	font-size: 17px;
+	line-height: 1.65;
 	color: var(--text-primary);
 	background:
 		radial-gradient(circle at 8% 12%, rgba(66, 121, 170, 0.18) 0, rgba(66, 121, 170, 0) 36%),
@@ -71,7 +71,7 @@ body {
 .brand-subtitle {
 	margin-top: 3px;
 	color: rgba(220, 236, 250, 0.65);
-	font-size: 11px;
+	font-size: 13px;
 	letter-spacing: 0.5px;
 	text-transform: uppercase;
 }
@@ -83,10 +83,11 @@ body {
 }
 
 .app-menu .ant-menu-item {
-	margin: 4px 0 !important;
+	margin: 6px 0 !important;
 	border-radius: 12px;
 	color: rgba(224, 237, 248, 0.85) !important;
 	font-weight: 600;
+	font-size: 18px;
 }
 
 .app-menu .ant-menu-item-selected {
@@ -132,7 +133,7 @@ body {
 	align-items: center;
 	padding: 6px 12px;
 	border-radius: 999px;
-	font-size: 12px;
+	font-size: 15px;
 	font-weight: 700;
 	color: #0b3f27;
 	background: linear-gradient(90deg, #d2f1e2 0%, #e2f8eb 100%);
@@ -200,8 +201,8 @@ body {
 }
 
 .monitor-table .ant-table-thead > tr > th {
-	padding: 9px 10px !important;
-	font-size: 12px;
+	padding: 12px 14px !important;
+	font-size: 16px;
 	letter-spacing: 0.1px;
 	text-transform: uppercase;
 	color: #32516a !important;
@@ -209,9 +210,9 @@ body {
 }
 
 .monitor-table .ant-table-tbody > tr > td {
-	padding: 8px 10px !important;
-	font-size: 12px;
-	line-height: 1.35;
+	padding: 12px 14px !important;
+	font-size: 16px;
+	line-height: 1.55;
 }
 
 .monitor-table .ant-table-tbody > tr:nth-child(even) > td {
@@ -324,7 +325,7 @@ body {
 }
 
 .dashboard-hero-eyebrow {
-	font-size: 11px;
+	font-size: 14px;
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.7px;
@@ -341,10 +342,10 @@ body {
 .hero-chip {
 	display: inline-flex;
 	align-items: center;
-	height: 30px;
-	padding: 0 12px;
+	height: 36px;
+	padding: 0 18px;
 	border-radius: 999px;
-	font-size: 12px;
+	font-size: 15px;
 	font-weight: 700;
 	border: 1px solid transparent;
 }
@@ -429,12 +430,12 @@ body {
 
 .premium-trend-date {
 	margin-top: 6px;
-	font-size: 11px;
+	font-size: 13px;
 	color: #73869a;
 }
 
 .premium-trend-value {
-	font-size: 12px;
+	font-size: 14px;
 	font-weight: 700;
 	color: #23415a;
 }
@@ -443,7 +444,7 @@ body {
 	display: flex;
 	gap: 14px;
 	margin-top: 8px;
-	font-size: 12px;
+	font-size: 15px;
 	color: #607789;
 }
 
