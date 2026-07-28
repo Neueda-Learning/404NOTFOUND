@@ -73,13 +73,14 @@ public class RuleEvaluationService {
         List<String> types = rule.getTransactionTypes() != null ? rule.getTransactionTypes()
                 : Arrays.asList("DEBIT", "CREDIT", "TRANSFER");
 
-        long count = transactionRepository.countVelocityTransactions(
-                tx.getAccountId(), types, windowStart, tx.getTransactionTime());
+        long priorCount = transactionRepository.countVelocityTransactions(
+            tx.getAccountId(), types, windowStart, tx.getTransactionTime(), tx.getTransactionId());
+        long countWithCurrent = priorCount + 1;
 
-        if (count > rule.getMaxTransactionCount()) {
+        if (countWithCurrent > rule.getMaxTransactionCount()) {
             String reason = String.format("%d transactions in %d minutes (max: %d) for account %s",
-                    count, rule.getTimeWindowMinutes(), rule.getMaxTransactionCount(), tx.getAccountId());
-            createAlert(tx, rule, BigDecimal.valueOf(count),
+                countWithCurrent, rule.getTimeWindowMinutes(), rule.getMaxTransactionCount(), tx.getAccountId());
+            createAlert(tx, rule, BigDecimal.valueOf(countWithCurrent),
                     BigDecimal.valueOf(rule.getMaxTransactionCount()), reason, rule.getTimeWindowMinutes());
         }
     }
@@ -109,14 +110,16 @@ public class RuleEvaluationService {
                 .toLocalDate().atStartOfDay(ZoneOffset.UTC).toInstant();
 
         BigDecimal dailyTotal = transactionRepository.sumDailyAmount(
-                tx.getAccountId(), tx.getCurrency(), dayStart, tx.getTransactionTime());
+            tx.getAccountId(), tx.getCurrency(), dayStart, tx.getTransactionTime(), tx.getTransactionId());
 
         if (dailyTotal == null) dailyTotal = BigDecimal.ZERO;
 
-        if (dailyTotal.compareTo(rule.getDailyLimit()) > 0) {
+        BigDecimal totalWithCurrent = dailyTotal.add(tx.getAmount());
+
+        if (totalWithCurrent.compareTo(rule.getDailyLimit()) > 0) {
             String reason = String.format("Daily total %s %s exceeds limit %s for account %s",
-                    dailyTotal, tx.getCurrency(), rule.getDailyLimit(), tx.getAccountId());
-            createAlert(tx, rule, dailyTotal, rule.getDailyLimit(), reason, null);
+                totalWithCurrent, tx.getCurrency(), rule.getDailyLimit(), tx.getAccountId());
+            createAlert(tx, rule, totalWithCurrent, rule.getDailyLimit(), reason, null);
         }
     }
 

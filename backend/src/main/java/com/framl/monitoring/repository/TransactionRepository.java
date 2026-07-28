@@ -17,19 +17,23 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
 
     @Query("SELECT COUNT(t) FROM Transaction t WHERE t.accountId = :accountId " +
            "AND t.status = 'COMPLETED' AND t.type IN :types " +
-           "AND t.transactionTime BETWEEN :windowStart AND :windowEnd")
+           "AND t.transactionTime BETWEEN :windowStart AND :windowEnd " +
+           "AND t.transactionId <> :currentTxId")
     long countVelocityTransactions(@Param("accountId") String accountId,
                                    @Param("types") List<String> types,
                                    @Param("windowStart") Instant windowStart,
-                                   @Param("windowEnd") Instant windowEnd);
+                                   @Param("windowEnd") Instant windowEnd,
+                                   @Param("currentTxId") String currentTxId);
 
     @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.accountId = :accountId " +
            "AND t.status = 'COMPLETED' AND t.type = 'DEBIT' AND t.currency = :currency " +
-           "AND t.transactionTime BETWEEN :dayStart AND :current")
+           "AND t.transactionTime BETWEEN :dayStart AND :current " +
+           "AND t.transactionId <> :currentTxId")
     BigDecimal sumDailyAmount(@Param("accountId") String accountId,
                                @Param("currency") String currency,
                                @Param("dayStart") Instant dayStart,
-                               @Param("current") Instant current);
+                               @Param("current") Instant current,
+                               @Param("currentTxId") String currentTxId);
 
     @Query("SELECT COUNT(t) FROM Transaction t WHERE t.accountId = :accountId " +
            "AND t.status = 'COMPLETED' AND t.type = 'DEBIT' AND t.payeeId = :payeeId " +
