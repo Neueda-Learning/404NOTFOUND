@@ -4,9 +4,12 @@ import com.framl.monitoring.dto.RuleRequest;
 import com.framl.monitoring.dto.RuleResponse;
 import com.framl.monitoring.service.RuleService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rules")
 @RequiredArgsConstructor
+@Validated
 public class RuleController {
 
     private final RuleService ruleService;
@@ -24,12 +28,8 @@ public class RuleController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RuleResponse> getById(@PathVariable Long id) {
-        try {
-            return ResponseEntity.ok(ruleService.getById(id));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<RuleResponse> getById(@PathVariable @NotNull @Positive Long id) {
+        return ResponseEntity.ok(ruleService.getById(id));
     }
 
     @PostMapping
@@ -38,26 +38,18 @@ public class RuleController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RuleResponse> update(@PathVariable Long id,
+    public ResponseEntity<RuleResponse> update(@PathVariable @NotNull @Positive Long id,
                                                 @Valid @RequestBody RuleRequest req) {
-        try {
-            return ResponseEntity.ok(ruleService.update(id, req));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(ruleService.update(id, req));
     }
 
     @PatchMapping("/{id}/toggle")
-    public ResponseEntity<RuleResponse> toggle(@PathVariable Long id) {
-        try {
-            return ResponseEntity.ok(ruleService.toggle(id));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<RuleResponse> toggle(@PathVariable @NotNull @Positive Long id) {
+        return ResponseEntity.ok(ruleService.toggle(id));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable @NotNull @Positive Long id) {
         ruleService.delete(id);
         return ResponseEntity.noContent().build();
     }
