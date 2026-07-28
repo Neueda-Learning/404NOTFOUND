@@ -198,6 +198,61 @@ body {
 	font-weight: 600;
 }
 
+.monitor-table .ant-table-thead > tr > th {
+	padding: 9px 10px !important;
+	font-size: 12px;
+	letter-spacing: 0.1px;
+	text-transform: uppercase;
+	color: #32516a !important;
+	background: linear-gradient(180deg, #f6fafd 0%, #edf4fb 100%) !important;
+}
+
+.monitor-table .ant-table-tbody > tr > td {
+	padding: 8px 10px !important;
+	font-size: 12px;
+	line-height: 1.35;
+}
+
+.monitor-table .ant-table-tbody > tr:nth-child(even) > td {
+	background: rgba(242, 248, 253, 0.6);
+}
+
+.monitor-status-tag {
+	border-width: 0 !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.2px;
+}
+
+.monitor-severity-tag {
+	border-width: 0 !important;
+	font-weight: 700 !important;
+}
+
+.monitor-table .ant-pagination {
+	margin-top: 10px !important;
+	margin-bottom: 0 !important;
+}
+
+.monitor-status-open {
+	box-shadow: 0 0 0 1px rgba(207, 19, 34, 0.22), 0 4px 10px rgba(207, 19, 34, 0.18);
+}
+
+.monitor-status-acknowledged {
+	box-shadow: 0 0 0 1px rgba(212, 136, 6, 0.22), 0 4px 10px rgba(212, 136, 6, 0.16);
+}
+
+.monitor-status-investigating {
+	box-shadow: 0 0 0 1px rgba(22, 119, 255, 0.2), 0 4px 10px rgba(22, 119, 255, 0.14);
+}
+
+.monitor-status-closed {
+	box-shadow: 0 0 0 1px rgba(56, 158, 13, 0.2), 0 4px 10px rgba(56, 158, 13, 0.14);
+}
+
+.monitor-status-dismissed {
+	box-shadow: 0 0 0 1px rgba(107, 114, 128, 0.22), 0 4px 10px rgba(107, 114, 128, 0.16);
+}
+
 .ant-drawer .ant-drawer-content {
 	background: #f5f9fd;
 }
@@ -358,6 +413,10 @@ body {
 	padding: 4px 0;
 }
 
+.alert-summary-grid {
+	row-gap: 12px;
+}
+
 @keyframes rise-in {
 	from {
 		opacity: 0;
@@ -413,5 +472,80 @@ body {
 
 	.app-content {
 		margin: 16px;
+	}
+
+	.alert-detail-page .ant-descriptions-bordered .ant-descriptions-item-label,
+	.alert-detail-page .ant-descriptions-bordered .ant-descriptions-item-content {
+		padding: 8px 10px;
+	}
+
+	.investigation-panel-card {
+		position: static !important;
+	}
+
+	.monitor-table .ant-table-thead > tr > th,
+	.monitor-table .ant-table-tbody > tr > td {
+		padding: 8px 8px !important;
+	}
+}
+
+@media (max-width: 768px) {
+	.alert-detail-page {
+		padding-bottom: 10px;
+	}
+
+	.alert-detail-breadcrumb {
+		display: flex;
+		align-items: flex-start !important;
+		gap: 8px !important;
+		flex-wrap: wrap;
+	}
+
+	.alert-detail-breadcrumb .ant-btn {
+		height: 32px;
+		padding-inline: 10px;
+	}
+
+	.alert-summary-card .ant-card-body {
+		padding: 14px;
+	}
+
+	.alert-summary-main .ant-typography {
+		max-width: 100%;
+	}
+
+	.alert-summary-side,
+	.alert-summary-actions {
+		min-width: 100% !important;
+		text-align: left !important;
+	}
+
+	.alert-summary-actions .ant-btn {
+		height: 36px;
+		font-weight: 700;
+	}
+
+	.alert-detail-page .ant-steps-item-title {
+		font-size: 12px;
+	}
+
+	.alert-detail-page .ant-steps-item-description {
+		font-size: 11px;
+	}
+
+	.alert-detail-page .ant-modal {
+		max-width: calc(100vw - 20px);
+	}
+
+	.alert-detail-page .ant-modal .ant-descriptions-item-label,
+	.alert-detail-page .ant-modal .ant-descriptions-item-content {
+		padding: 6px 8px;
+	}
+
+	.risk-score-block {
+		display: inline-flex;
+		align-items: center;
+		gap: 12px;
+		padding-right: 14px;
 	}
 }

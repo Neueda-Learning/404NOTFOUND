@@ -22,6 +22,22 @@ const { Option } = Select;
 const statusOptions: AlertStatus[] = ['OPEN', 'ACKNOWLEDGED', 'INVESTIGATING', 'CLOSED', 'DISMISSED'];
 const severityOptions: AlertSeverity[] = ['HIGH', 'MEDIUM', 'LOW'];
 
+const alertStatusClass: Record<AlertStatus, string> = {
+  OPEN: 'monitor-status-open',
+  ACKNOWLEDGED: 'monitor-status-acknowledged',
+  INVESTIGATING: 'monitor-status-investigating',
+  CLOSED: 'monitor-status-closed',
+  DISMISSED: 'monitor-status-dismissed',
+};
+
+const alertStatusDotColor: Record<AlertStatus, string> = {
+  OPEN: '#cf1322',
+  ACKNOWLEDGED: '#d48806',
+  INVESTIGATING: '#1677ff',
+  CLOSED: '#389e0d',
+  DISMISSED: '#6b7280',
+};
+
 export default function AlertsList() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -127,13 +143,18 @@ export default function AlertsList() {
       title: 'Severity',
       dataIndex: 'severity',
       width: 90,
-      render: (v: AlertSeverity) => <Tag color={severityColor[v]}>{v}</Tag>,
+      render: (v: AlertSeverity) => <Tag color={severityColor[v]} className="monitor-severity-tag">{v}</Tag>,
     },
     {
       title: 'Status',
       dataIndex: 'status',
       width: 130,
-      render: (v: AlertStatus) => <Badge status={v === 'OPEN' ? 'error' : v === 'CLOSED' ? 'success' : 'processing'} text={<Tag color={statusColor[v]}>{v}</Tag>} />,
+      render: (v: AlertStatus) => (
+        <Badge
+          color={alertStatusDotColor[v]}
+          text={<Tag color={statusColor[v]} className={`monitor-status-tag ${alertStatusClass[v]}`}>{v}</Tag>}
+        />
+      ),
     },
     {
       title: 'Resolution',
@@ -176,7 +197,7 @@ export default function AlertsList() {
             onChange={v => { setFilterStatus(v); setPage(0); }}
           >
             {statusOptions.map(s => (
-              <Option key={s} value={s}><Tag color={statusColor[s]}>{s}</Tag></Option>
+              <Option key={s} value={s}><Tag color={statusColor[s]} className={`monitor-status-tag ${alertStatusClass[s]}`}>{s}</Tag></Option>
             ))}
           </Select>
         </Col>
@@ -189,7 +210,7 @@ export default function AlertsList() {
             onChange={v => { setFilterSeverity(v); setPage(0); }}
           >
             {severityOptions.map(s => (
-              <Option key={s} value={s}><Tag color={severityColor[s]}>{s}</Tag></Option>
+              <Option key={s} value={s}><Tag color={severityColor[s]} className="monitor-severity-tag">{s}</Tag></Option>
             ))}
           </Select>
         </Col>
@@ -209,12 +230,13 @@ export default function AlertsList() {
       )}
 
       <Table<AlertListItem>
+        className="monitor-table"
         columns={columns}
         dataSource={alerts}
         rowKey="alertId"
         loading={loading}
         scroll={{ x: 1400 }}
-        size="middle"
+        size="small"
         onRow={record => ({ onClick: () => openDrawer(record.alertId), style: { cursor: 'pointer' } })}
         pagination={{
           current: page + 1,
@@ -251,8 +273,8 @@ export default function AlertsList() {
         {drawerAlert && !drawerLoading && (
           <div>
             <Space style={{ marginBottom: 16 }}>
-              <Tag color={severityColor[drawerAlert.severity]}>{drawerAlert.severity}</Tag>
-              <Tag color={statusColor[drawerAlert.status]}>{drawerAlert.status}</Tag>
+              <Tag color={severityColor[drawerAlert.severity]} className="monitor-severity-tag">{drawerAlert.severity}</Tag>
+              <Tag color={statusColor[drawerAlert.status]} className={`monitor-status-tag ${alertStatusClass[drawerAlert.status]}`}>{drawerAlert.status}</Tag>
               <Text type="secondary">Risk Score: <Text strong>{drawerAlert.riskScore}</Text></Text>
             </Space>
 
@@ -277,7 +299,7 @@ export default function AlertsList() {
                         <Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>
                           {formatTime(h.changedAt)}
                         </Text>
-                        <div><Tag color={statusColor[h.toStatus]}>{h.toStatus}</Tag></div>
+                        <div><Tag color={statusColor[h.toStatus]} className={`monitor-status-tag ${alertStatusClass[h.toStatus]}`}>{h.toStatus}</Tag></div>
                         {h.comment && <Text type="secondary">{h.comment}</Text>}
                       </div>
                     ),

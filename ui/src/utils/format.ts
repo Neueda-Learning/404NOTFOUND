@@ -21,32 +21,32 @@ export const formatAmount = (amount?: number, currency?: string): string => {
 };
 
 export const severityColor: Record<AlertSeverity, string> = {
-  HIGH: 'red',
-  MEDIUM: 'orange',
-  LOW: 'blue',
+  HIGH: '#cf1322',
+  MEDIUM: '#d46b08',
+  LOW: '#1677ff',
 };
 
 export const statusColor: Record<AlertStatus, string> = {
-  OPEN: 'red',
-  ACKNOWLEDGED: 'orange',
-  INVESTIGATING: 'blue',
-  CLOSED: 'green',
-  DISMISSED: 'default',
+  OPEN: '#cf1322',
+  ACKNOWLEDGED: '#d48806',
+  INVESTIGATING: '#1677ff',
+  CLOSED: '#389e0d',
+  DISMISSED: '#6b7280',
 };
 
 export const txStatusColor: Record<TransactionStatus, string> = {
-  COMPLETED: 'green',
-  PENDING: 'orange',
-  FAILED: 'red',
-  CANCELLED: 'default',
-  REVERSED: 'purple',
+  COMPLETED: '#389e0d',
+  PENDING: '#d48806',
+  FAILED: '#cf1322',
+  CANCELLED: '#6b7280',
+  REVERSED: '#0f766e',
 };
 
 export const txTypeColor: Record<TransactionType, string> = {
-  DEBIT: 'red',
-  CREDIT: 'green',
-  TRANSFER: 'blue',
-  REFUND: 'purple',
+  DEBIT: '#cf1322',
+  CREDIT: '#389e0d',
+  TRANSFER: '#1677ff',
+  REFUND: '#0f766e',
 };
 
 export const resolutionCodeLabels: Record<string, string> = {

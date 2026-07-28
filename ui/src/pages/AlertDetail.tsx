@@ -28,6 +28,21 @@ const RESOLUTION_OPTIONS: ResolutionCode[] = [
   'INSUFFICIENT_INFORMATION', 'ESCALATED',
 ];
 
+const alertStatusClass: Record<AlertDetail['status'], string> = {
+  OPEN: 'monitor-status-open',
+  ACKNOWLEDGED: 'monitor-status-acknowledged',
+  INVESTIGATING: 'monitor-status-investigating',
+  CLOSED: 'monitor-status-closed',
+  DISMISSED: 'monitor-status-dismissed',
+};
+
+const actionTargetStatus: Record<string, AlertDetail['status']> = {
+  acknowledge: 'ACKNOWLEDGED',
+  investigate: 'INVESTIGATING',
+  close: 'CLOSED',
+  dismiss: 'DISMISSED',
+};
+
 function StatusBreadcrumb({ alertId }: { alertId: string }) {
   const navigate = useNavigate();
   return (
@@ -55,7 +70,7 @@ function AlertSummaryCard({ alert, onAction }: { alert: AlertDetail; onAction: (
 
   return (
     <Card className="alert-summary-card" style={{ marginBottom: 24 }}>
-      <Row align="middle" gutter={24}>
+      <Row align="middle" gutter={24} className="alert-summary-grid">
         <Col flex="auto" className="alert-summary-main">
           <Title level={4} style={{ margin: 0 }}>{alert.title}</Title>
           <Space style={{ marginTop: 4 }}>
@@ -69,10 +84,10 @@ function AlertSummaryCard({ alert, onAction }: { alert: AlertDetail; onAction: (
           </Space>
         </Col>
 
-        <Col style={{ textAlign: 'center', minWidth: 160 }}>
+        <Col className="alert-summary-side" style={{ textAlign: 'center', minWidth: 160 }}>
           <Space direction="vertical" size={8}>
-            <Tag color={statusColor[alert.status]} style={{ fontSize: 14, padding: '4px 12px' }}>{alert.status}</Tag>
-            <Tag color={severityColor[alert.severity]} style={{ fontSize: 14, padding: '4px 12px' }}>{alert.severity}</Tag>
+            <Tag color={statusColor[alert.status]} className={`monitor-status-tag ${alertStatusClass[alert.status]}`} style={{ fontSize: 14, padding: '4px 12px' }}>{alert.status}</Tag>
+            <Tag color={severityColor[alert.severity]} className="monitor-severity-tag" style={{ fontSize: 14, padding: '4px 12px' }}>{alert.severity}</Tag>
             <div className="risk-score-block">
               <Text type="secondary" style={{ fontSize: 12 }}>Risk Score</Text>
               <Progress
@@ -93,7 +108,7 @@ function AlertSummaryCard({ alert, onAction }: { alert: AlertDetail; onAction: (
         </Col>
 
         {actionButtons.length > 0 && (
-          <Col style={{ minWidth: 160 }}>
+          <Col className="alert-summary-actions" style={{ minWidth: 160 }}>
             <Space direction="vertical" style={{ width: '100%' }}>
               {actionButtons.map(btn => (
                 <Button
@@ -121,8 +136,8 @@ function AlertInfoCard({ alert }: { alert: AlertDetail }) {
         <Descriptions.Item label="Alert ID"><Text code>{alert.alertId}</Text></Descriptions.Item>
         <Descriptions.Item label="Title">{alert.title}</Descriptions.Item>
         <Descriptions.Item label="Description" span={2}>{alert.description || '-'}</Descriptions.Item>
-        <Descriptions.Item label="Status"><Tag color={statusColor[alert.status]}>{alert.status}</Tag></Descriptions.Item>
-        <Descriptions.Item label="Severity"><Tag color={severityColor[alert.severity]}>{alert.severity}</Tag></Descriptions.Item>
+        <Descriptions.Item label="Status"><Tag color={statusColor[alert.status]} className={`monitor-status-tag ${alertStatusClass[alert.status]}`}>{alert.status}</Tag></Descriptions.Item>
+        <Descriptions.Item label="Severity"><Tag color={severityColor[alert.severity]} className="monitor-severity-tag">{alert.severity}</Tag></Descriptions.Item>
         <Descriptions.Item label="Risk Score">
           <Text strong style={{ color: alert.riskScore >= 75 ? '#ff4d4f' : '#faad14' }}>{alert.riskScore}/100</Text>
         </Descriptions.Item>
@@ -272,18 +287,17 @@ function InvestigationPanel({
       >
         <Descriptions column={1} size="small">
           <Descriptions.Item label="Current Status">
-            <Tag color={statusColor[alert.status]}>{alert.status}</Tag>
+            <Tag color={statusColor[alert.status]} className={`monitor-status-tag ${alertStatusClass[alert.status]}`}>{alert.status}</Tag>
           </Descriptions.Item>
           <Descriptions.Item label="Target Status">
-            <Tag color={
-              confirmAction === 'acknowledge' ? 'orange' :
-              confirmAction === 'investigate' ? 'blue' :
-              confirmAction === 'close' ? 'green' : 'default'
-            }>
-              {confirmAction === 'acknowledge' ? 'ACKNOWLEDGED' :
-               confirmAction === 'investigate' ? 'INVESTIGATING' :
-               confirmAction === 'close' ? 'CLOSED' : 'DISMISSED'}
-            </Tag>
+            {confirmAction && (
+              <Tag
+                color={statusColor[actionTargetStatus[confirmAction]]}
+                className={`monitor-status-tag ${alertStatusClass[actionTargetStatus[confirmAction]]}`}
+              >
+                {actionTargetStatus[confirmAction]}
+              </Tag>
+            )}
           </Descriptions.Item>
           {resolutionCode && (
             <Descriptions.Item label="Resolution">{resolutionCodeLabels[resolutionCode]}</Descriptions.Item>
@@ -420,6 +434,7 @@ export default function AlertDetail() {
       >
         {alert.transactions && alert.transactions.length > 0 ? (
           <Table<Transaction>
+            className="monitor-table"
             columns={txColumns}
             dataSource={alert.transactions}
             rowKey="transactionId"
@@ -434,7 +449,7 @@ export default function AlertDetail() {
                   <Descriptions.Item label="Full Transaction Time">{formatTime(tx.transactionTime)}</Descriptions.Item>
                   <Descriptions.Item label="Primary Trigger">
                     {tx.transactionId === alert.primaryTransactionId ? (
-                      <Tag color="red">Yes</Tag>
+                      <Tag color="#cf1322" className="monitor-severity-tag">Yes</Tag>
                     ) : (
                       <Tag>No</Tag>
                     )}
@@ -462,7 +477,7 @@ export default function AlertDetail() {
                     <Text strong>{h.actionType}</Text>
                     {h.fromStatus && <Tag>{h.fromStatus}</Tag>}
                     <span>→</span>
-                    <Tag color={statusColor[h.toStatus]}>{h.toStatus}</Tag>
+                    <Tag color={statusColor[h.toStatus]} className={`monitor-status-tag ${alertStatusClass[h.toStatus]}`}>{h.toStatus}</Tag>
                     <Text type="secondary" style={{ fontSize: 12 }}>{formatTime(h.changedAt)}</Text>
                     <Text type="secondary" style={{ fontSize: 12 }}>by {h.changedBy}</Text>
                   </Space>

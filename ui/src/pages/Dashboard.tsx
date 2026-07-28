@@ -160,6 +160,7 @@ export default function Dashboard() {
         <Col xs={24} lg={6}>
           <Card title="Top Triggered Rules" style={{ height: 260 }}>
             <Table<TopRule>
+              className="monitor-table"
               dataSource={data.topTriggeredRules.slice(0, 5)}
               rowKey="ruleName"
               size="small"

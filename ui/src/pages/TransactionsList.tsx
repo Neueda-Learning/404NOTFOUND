@@ -270,6 +270,7 @@ export default function TransactionsList() {
       )}
 
       <Table<Transaction>
+        className="monitor-table"
         columns={columns}
         dataSource={transactions}
         rowKey="transactionId"

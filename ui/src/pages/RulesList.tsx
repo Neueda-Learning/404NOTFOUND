@@ -151,6 +151,7 @@ export default function RulesList() {
       )}
 
       <Table<Rule>
+        className="monitor-table"
         columns={columns}
         dataSource={rules}
         rowKey="id"
