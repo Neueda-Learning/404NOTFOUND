@@ -164,6 +164,15 @@ class RuleEvaluationServiceTest {
         when(transactionRepository.countVelocityTransactions(
             eq("ACC-001"), anyList(), any(Instant.class), any(Instant.class), eq("TXN-001")))
                 .thenReturn(6L); // 6 transactions > 5 max
+        when(transactionRepository.sumVelocityAmount(
+            eq("ACC-001"), anyList(), any(Instant.class), any(Instant.class), eq("TXN-001")))
+                .thenReturn(new BigDecimal("4200.00"));
+        when(transactionRepository.minVelocityTransactionTime(
+            eq("ACC-001"), anyList(), any(Instant.class), any(Instant.class), eq("TXN-001")))
+                .thenReturn(tx.getTransactionTime().minus(40, ChronoUnit.MINUTES));
+        when(transactionRepository.maxVelocityTransactionTime(
+            eq("ACC-001"), anyList(), any(Instant.class), any(Instant.class), eq("TXN-001")))
+                .thenReturn(tx.getTransactionTime().minus(2, ChronoUnit.MINUTES));
         when(alertRepository.save(any(Alert.class))).thenAnswer(inv -> inv.getArgument(0));
 
         ruleEvaluationService.evaluate(tx);
@@ -174,6 +183,10 @@ class RuleEvaluationServiceTest {
         Alert alert = alertCaptor.getValue();
         assertTrue(alert.getTriggerReason().contains("7 transactions"));
         assertEquals(60, alert.getTimeWindowMinutes());
+        assertEquals(new BigDecimal("4700.00"), alert.getTotalAmount());
+        assertEquals(7, alert.getTransactionCount());
+        assertEquals(tx.getTransactionTime().minus(40, ChronoUnit.MINUTES), alert.getFirstTransactionAt());
+        assertEquals(tx.getTransactionTime(), alert.getLastTransactionAt());
     }
 
     @Test
@@ -265,6 +278,15 @@ class RuleEvaluationServiceTest {
         when(transactionRepository.sumDailyAmount(
             eq("ACC-001"), eq("USD"), any(Instant.class), any(Instant.class), eq("TXN-001")))
                 .thenReturn(BigDecimal.valueOf(15000)); // Exceeds 10000 limit
+        when(transactionRepository.countDailyTransactions(
+            eq("ACC-001"), eq("USD"), any(Instant.class), any(Instant.class), eq("TXN-001")))
+                .thenReturn(4L);
+        when(transactionRepository.minDailyTransactionTime(
+            eq("ACC-001"), eq("USD"), any(Instant.class), any(Instant.class), eq("TXN-001")))
+                .thenReturn(tx.getTransactionTime().minus(8, ChronoUnit.HOURS));
+        when(transactionRepository.maxDailyTransactionTime(
+            eq("ACC-001"), eq("USD"), any(Instant.class), any(Instant.class), eq("TXN-001")))
+                .thenReturn(tx.getTransactionTime().minus(30, ChronoUnit.MINUTES));
         when(alertRepository.save(any(Alert.class))).thenAnswer(inv -> inv.getArgument(0));
 
         ruleEvaluationService.evaluate(tx);
@@ -275,6 +297,10 @@ class RuleEvaluationServiceTest {
         Alert alert = alertCaptor.getValue();
         assertTrue(alert.getTriggerReason().contains("20000"));
         assertTrue(alert.getTriggerReason().contains("Daily total"));
+        assertEquals(new BigDecimal("20000"), alert.getTotalAmount());
+        assertEquals(5, alert.getTransactionCount());
+        assertEquals(tx.getTransactionTime().minus(8, ChronoUnit.HOURS), alert.getFirstTransactionAt());
+        assertEquals(tx.getTransactionTime(), alert.getLastTransactionAt());
     }
 
     @Test

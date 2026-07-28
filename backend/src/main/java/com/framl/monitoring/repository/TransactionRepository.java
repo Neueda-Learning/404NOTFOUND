@@ -35,6 +35,66 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
                                @Param("current") Instant current,
                                @Param("currentTxId") String currentTxId);
 
+    @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.accountId = :accountId " +
+           "AND t.status = 'COMPLETED' AND t.type IN :types " +
+           "AND t.transactionTime BETWEEN :windowStart AND :windowEnd " +
+           "AND t.transactionId <> :currentTxId")
+    BigDecimal sumVelocityAmount(@Param("accountId") String accountId,
+                                 @Param("types") List<String> types,
+                                 @Param("windowStart") Instant windowStart,
+                                 @Param("windowEnd") Instant windowEnd,
+                                 @Param("currentTxId") String currentTxId);
+
+    @Query("SELECT MIN(t.transactionTime) FROM Transaction t WHERE t.accountId = :accountId " +
+           "AND t.status = 'COMPLETED' AND t.type IN :types " +
+           "AND t.transactionTime BETWEEN :windowStart AND :windowEnd " +
+           "AND t.transactionId <> :currentTxId")
+    Instant minVelocityTransactionTime(@Param("accountId") String accountId,
+                                       @Param("types") List<String> types,
+                                       @Param("windowStart") Instant windowStart,
+                                       @Param("windowEnd") Instant windowEnd,
+                                       @Param("currentTxId") String currentTxId);
+
+    @Query("SELECT MAX(t.transactionTime) FROM Transaction t WHERE t.accountId = :accountId " +
+           "AND t.status = 'COMPLETED' AND t.type IN :types " +
+           "AND t.transactionTime BETWEEN :windowStart AND :windowEnd " +
+           "AND t.transactionId <> :currentTxId")
+    Instant maxVelocityTransactionTime(@Param("accountId") String accountId,
+                                       @Param("types") List<String> types,
+                                       @Param("windowStart") Instant windowStart,
+                                       @Param("windowEnd") Instant windowEnd,
+                                       @Param("currentTxId") String currentTxId);
+
+    @Query("SELECT COUNT(t) FROM Transaction t WHERE t.accountId = :accountId " +
+           "AND t.status = 'COMPLETED' AND t.type = 'DEBIT' AND t.currency = :currency " +
+           "AND t.transactionTime BETWEEN :dayStart AND :current " +
+           "AND t.transactionId <> :currentTxId")
+    long countDailyTransactions(@Param("accountId") String accountId,
+                                @Param("currency") String currency,
+                                @Param("dayStart") Instant dayStart,
+                                @Param("current") Instant current,
+                                @Param("currentTxId") String currentTxId);
+
+    @Query("SELECT MIN(t.transactionTime) FROM Transaction t WHERE t.accountId = :accountId " +
+           "AND t.status = 'COMPLETED' AND t.type = 'DEBIT' AND t.currency = :currency " +
+           "AND t.transactionTime BETWEEN :dayStart AND :current " +
+           "AND t.transactionId <> :currentTxId")
+    Instant minDailyTransactionTime(@Param("accountId") String accountId,
+                                    @Param("currency") String currency,
+                                    @Param("dayStart") Instant dayStart,
+                                    @Param("current") Instant current,
+                                    @Param("currentTxId") String currentTxId);
+
+    @Query("SELECT MAX(t.transactionTime) FROM Transaction t WHERE t.accountId = :accountId " +
+           "AND t.status = 'COMPLETED' AND t.type = 'DEBIT' AND t.currency = :currency " +
+           "AND t.transactionTime BETWEEN :dayStart AND :current " +
+           "AND t.transactionId <> :currentTxId")
+    Instant maxDailyTransactionTime(@Param("accountId") String accountId,
+                                    @Param("currency") String currency,
+                                    @Param("dayStart") Instant dayStart,
+                                    @Param("current") Instant current,
+                                    @Param("currentTxId") String currentTxId);
+
     @Query("SELECT COUNT(t) FROM Transaction t WHERE t.accountId = :accountId " +
            "AND t.status = 'COMPLETED' AND t.type = 'DEBIT' AND t.payeeId = :payeeId " +
            "AND (t.transactionTime < :txTime OR (t.transactionTime = :txTime AND t.transactionId < :txId))")

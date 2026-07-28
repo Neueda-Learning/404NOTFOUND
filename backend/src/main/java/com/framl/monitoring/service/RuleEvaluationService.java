@@ -75,7 +75,8 @@ public class RuleEvaluationService {
         if (tx.getAmount().compareTo(rule.getThreshold()) > 0) {
             String reason = String.format("Transaction amount %s %s exceeds threshold %s",
                     tx.getAmount(), tx.getCurrency(), rule.getThreshold());
-            createAlert(tx, rule, tx.getAmount(), rule.getThreshold(), reason, null);
+            createAlert(tx, rule, tx.getAmount(), rule.getThreshold(), reason, null,
+                tx.getAmount(), 1, tx.getTransactionTime(), tx.getTransactionTime());
         }
     }
 
@@ -92,12 +93,24 @@ public class RuleEvaluationService {
         long priorCount = transactionRepository.countVelocityTransactions(
             tx.getAccountId(), types, windowStart, tx.getTransactionTime(), tx.getTransactionId());
         long countWithCurrent = priorCount + 1;
+        BigDecimal priorTotalAmount = transactionRepository.sumVelocityAmount(
+            tx.getAccountId(), types, windowStart, tx.getTransactionTime(), tx.getTransactionId());
+        Instant priorFirstTxTime = transactionRepository.minVelocityTransactionTime(
+            tx.getAccountId(), types, windowStart, tx.getTransactionTime(), tx.getTransactionId());
+        Instant priorLastTxTime = transactionRepository.maxVelocityTransactionTime(
+            tx.getAccountId(), types, windowStart, tx.getTransactionTime(), tx.getTransactionId());
+
+        BigDecimal totalAmountWithCurrent = (priorTotalAmount == null ? BigDecimal.ZERO : priorTotalAmount)
+            .add(tx.getAmount());
+        Instant firstTxWithCurrent = minInstant(priorFirstTxTime, tx.getTransactionTime());
+        Instant lastTxWithCurrent = maxInstant(priorLastTxTime, tx.getTransactionTime());
 
         if (countWithCurrent > rule.getMaxTransactionCount()) {
             String reason = String.format("%d transactions in %d minutes (max: %d) for account %s",
                 countWithCurrent, rule.getTimeWindowMinutes(), rule.getMaxTransactionCount(), tx.getAccountId());
             createAlert(tx, rule, BigDecimal.valueOf(countWithCurrent),
-                    BigDecimal.valueOf(rule.getMaxTransactionCount()), reason, rule.getTimeWindowMinutes());
+                    BigDecimal.valueOf(rule.getMaxTransactionCount()), reason, rule.getTimeWindowMinutes(),
+                    totalAmountWithCurrent, Math.toIntExact(countWithCurrent), firstTxWithCurrent, lastTxWithCurrent);
         }
     }
 
@@ -112,7 +125,8 @@ public class RuleEvaluationService {
         if (previousCount == 0) {
             String reason = String.format("First transaction to new payee %s from account %s",
                     tx.getPayeeId(), tx.getAccountId());
-            createAlert(tx, rule, BigDecimal.ZERO, BigDecimal.ZERO, reason, null);
+            createAlert(tx, rule, BigDecimal.ZERO, BigDecimal.ZERO, reason, null,
+                tx.getAmount(), 1, tx.getTransactionTime(), tx.getTransactionTime());
         }
     }
 
@@ -127,20 +141,32 @@ public class RuleEvaluationService {
 
         BigDecimal dailyTotal = transactionRepository.sumDailyAmount(
             tx.getAccountId(), tx.getCurrency(), dayStart, tx.getTransactionTime(), tx.getTransactionId());
+        long priorDailyCount = transactionRepository.countDailyTransactions(
+            tx.getAccountId(), tx.getCurrency(), dayStart, tx.getTransactionTime(), tx.getTransactionId());
+        Instant priorFirstTxTime = transactionRepository.minDailyTransactionTime(
+            tx.getAccountId(), tx.getCurrency(), dayStart, tx.getTransactionTime(), tx.getTransactionId());
+        Instant priorLastTxTime = transactionRepository.maxDailyTransactionTime(
+            tx.getAccountId(), tx.getCurrency(), dayStart, tx.getTransactionTime(), tx.getTransactionId());
 
         if (dailyTotal == null) dailyTotal = BigDecimal.ZERO;
 
         BigDecimal totalWithCurrent = dailyTotal.add(tx.getAmount());
+        int countWithCurrent = Math.toIntExact(priorDailyCount + 1);
+        Instant firstTxWithCurrent = minInstant(priorFirstTxTime, tx.getTransactionTime());
+        Instant lastTxWithCurrent = maxInstant(priorLastTxTime, tx.getTransactionTime());
 
         if (totalWithCurrent.compareTo(rule.getDailyLimit()) > 0) {
             String reason = String.format("Daily total %s %s exceeds limit %s for account %s",
                 totalWithCurrent, tx.getCurrency(), rule.getDailyLimit(), tx.getAccountId());
-            createAlert(tx, rule, totalWithCurrent, rule.getDailyLimit(), reason, null);
+            createAlert(tx, rule, totalWithCurrent, rule.getDailyLimit(), reason, null,
+                totalWithCurrent, countWithCurrent, firstTxWithCurrent, lastTxWithCurrent);
         }
     }
 
     private void createAlert(Transaction tx, Rule rule, BigDecimal actualValue,
-                              BigDecimal thresholdValue, String reason, Integer timeWindow) {
+                              BigDecimal thresholdValue, String reason, Integer timeWindow,
+                              BigDecimal aggregatedTotalAmount, Integer aggregatedTransactionCount,
+                              Instant aggregatedFirstTransactionAt, Instant aggregatedLastTransactionAt) {
         String deduplicationKey = buildDeduplicationKey(tx, rule, timeWindow);
         if (alertRepository.existsByDeduplicationKey(deduplicationKey)) {
             log.debug("Skip duplicate alert by deduplication key {}", deduplicationKey);
@@ -160,11 +186,11 @@ public class RuleEvaluationService {
         alert.setRiskScore(calculateRiskScore(rule.getSeverity(), actualValue, thresholdValue));
         alert.setPrimaryTransactionId(tx.getTransactionId());
         alert.setPrimaryPayeeId(tx.getPayeeId());
-        alert.setTotalAmount(tx.getAmount());
+        alert.setTotalAmount(aggregatedTotalAmount != null ? aggregatedTotalAmount : tx.getAmount());
         alert.setCurrency(tx.getCurrency());
-        alert.setTransactionCount(1);
-        alert.setFirstTransactionAt(tx.getTransactionTime());
-        alert.setLastTransactionAt(tx.getTransactionTime());
+        alert.setTransactionCount(aggregatedTransactionCount != null ? aggregatedTransactionCount : 1);
+        alert.setFirstTransactionAt(aggregatedFirstTransactionAt != null ? aggregatedFirstTransactionAt : tx.getTransactionTime());
+        alert.setLastTransactionAt(aggregatedLastTransactionAt != null ? aggregatedLastTransactionAt : tx.getTransactionTime());
         alert.setRuleId(rule.getId().toString());
         alert.setRuleName(rule.getName());
         alert.setRuleType(rule.getRuleType().name());
@@ -199,6 +225,20 @@ public class RuleEvaluationService {
         alertHistoryRepository.save(history);
 
         log.info("Alert created: {} for transaction {} by rule {}", alertId, tx.getTransactionId(), rule.getName());
+    }
+
+    private Instant minInstant(Instant candidate, Instant fallback) {
+        if (candidate == null) {
+            return fallback;
+        }
+        return candidate.isBefore(fallback) ? candidate : fallback;
+    }
+
+    private Instant maxInstant(Instant candidate, Instant fallback) {
+        if (candidate == null) {
+            return fallback;
+        }
+        return candidate.isAfter(fallback) ? candidate : fallback;
     }
 
     private int calculateRiskScore(AlertSeverity severity, BigDecimal actual, BigDecimal threshold) {

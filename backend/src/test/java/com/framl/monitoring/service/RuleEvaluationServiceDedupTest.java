@@ -84,6 +84,11 @@ class RuleEvaluationServiceDedupTest {
 
         when(ruleRepository.findByActiveTrue()).thenReturn(List.of(rule));
         when(transactionRepository.countVelocityTransactions(anyString(), any(), any(), any(), anyString())).thenReturn(5L);
+        when(transactionRepository.sumVelocityAmount(anyString(), any(), any(), any(), anyString())).thenReturn(new BigDecimal("3000.00"));
+        when(transactionRepository.minVelocityTransactionTime(anyString(), any(), any(), any(), anyString()))
+            .thenReturn(Instant.parse("2026-07-28T09:55:00Z"));
+        when(transactionRepository.maxVelocityTransactionTime(anyString(), any(), any(), any(), anyString()))
+            .thenReturn(Instant.parse("2026-07-28T09:59:00Z"));
         when(alertRepository.existsByDeduplicationKey(anyString())).thenReturn(false);
         when(alertRepository.save(any(com.framl.monitoring.entity.Alert.class)))
                 .thenThrow(new DataIntegrityViolationException("duplicate dedup key"));
@@ -116,6 +121,11 @@ class RuleEvaluationServiceDedupTest {
 
         when(ruleRepository.findByActiveTrue()).thenReturn(List.of(rule));
         when(transactionRepository.countVelocityTransactions(anyString(), any(), any(), any(), anyString())).thenReturn(3L);
+        when(transactionRepository.sumVelocityAmount(anyString(), any(), any(), any(), anyString())).thenReturn(new BigDecimal("1000.00"));
+        when(transactionRepository.minVelocityTransactionTime(anyString(), any(), any(), any(), anyString()))
+            .thenReturn(Instant.parse("2026-07-28T09:52:00Z"));
+        when(transactionRepository.maxVelocityTransactionTime(anyString(), any(), any(), any(), anyString()))
+            .thenReturn(Instant.parse("2026-07-28T09:59:00Z"));
         when(alertRepository.existsByDeduplicationKey(anyString())).thenReturn(false);
         when(alertRepository.save(any(com.framl.monitoring.entity.Alert.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -124,6 +134,8 @@ class RuleEvaluationServiceDedupTest {
 
         verify(transactionRepository, times(1)).countVelocityTransactions(
                 eq("ACC-001"), any(), any(), eq(Instant.parse("2026-07-28T10:00:00Z")), eq("TX-001"));
+        verify(transactionRepository, times(1)).sumVelocityAmount(
+            eq("ACC-001"), any(), any(), eq(Instant.parse("2026-07-28T10:00:00Z")), eq("TX-001"));
         verify(alertRepository, times(2)).save(any(com.framl.monitoring.entity.Alert.class));
     }
 
@@ -135,6 +147,12 @@ class RuleEvaluationServiceDedupTest {
         when(ruleRepository.findByActiveTrue()).thenReturn(List.of(rule));
         when(transactionRepository.sumDailyAmount(anyString(), anyString(), any(), any(), anyString()))
                 .thenReturn(new BigDecimal("50000.00"));
+        when(transactionRepository.countDailyTransactions(anyString(), anyString(), any(), any(), anyString()))
+            .thenReturn(5L);
+        when(transactionRepository.minDailyTransactionTime(anyString(), anyString(), any(), any(), anyString()))
+            .thenReturn(Instant.parse("2026-07-28T01:00:00Z"));
+        when(transactionRepository.maxDailyTransactionTime(anyString(), anyString(), any(), any(), anyString()))
+            .thenReturn(Instant.parse("2026-07-28T09:50:00Z"));
         when(alertRepository.existsByDeduplicationKey(anyString())).thenReturn(false);
         when(alertRepository.save(any(com.framl.monitoring.entity.Alert.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -143,6 +161,8 @@ class RuleEvaluationServiceDedupTest {
 
         verify(transactionRepository, times(1)).sumDailyAmount(
                 eq("ACC-001"), eq("USD"), any(), eq(Instant.parse("2026-07-28T10:00:00Z")), eq("TX-001"));
+        verify(transactionRepository, times(1)).countDailyTransactions(
+            eq("ACC-001"), eq("USD"), any(), eq(Instant.parse("2026-07-28T10:00:00Z")), eq("TX-001"));
         verify(alertRepository, times(2)).save(any(com.framl.monitoring.entity.Alert.class));
     }
 
