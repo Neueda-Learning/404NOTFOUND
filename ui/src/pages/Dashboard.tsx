@@ -41,25 +41,24 @@ const StatCard: FC<{
 
 const SimpleBarChart: FC<{ data: AlertTrendPoint[] }> = ({ data }) => {
   const maxVal = Math.max(...data.map(d => d.total), 1);
+
+  const barHeight = (value: number) => `${Math.max(4, (value / maxVal) * 100)}%`;
+
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', height: 120, gap: 8, padding: '0 8px' }}>
+    <div className="premium-trend-wrap">
       {data.map((d, i) => (
-        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch', height: 100 }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end' }}>
-              <div style={{
-                width: '100%',
-                height: `${(d.total / maxVal) * 100}%`,
-                minHeight: d.total > 0 ? 4 : 0,
-                background: d.high > 0 ? '#ff4d4f' : d.medium > 0 ? '#faad14' : '#1890ff',
-                borderRadius: '4px 4px 0 0',
-                transition: 'height 0.3s',
-              }} />
+        <div key={i} className="premium-trend-col" style={{ animationDelay: `${i * 70}ms` }}>
+          <div className="premium-trend-track">
+            <div className="premium-trend-stack" style={{ height: barHeight(d.total) }}>
+              <div className="premium-seg premium-seg-low" style={{ height: `${(d.low / d.total) * 100 || 0}%` }} />
+              <div className="premium-seg premium-seg-medium" style={{ height: `${(d.medium / d.total) * 100 || 0}%` }} />
+              <div className="premium-seg premium-seg-high" style={{ height: `${(d.high / d.total) * 100 || 0}%` }} />
             </div>
           </div>
-          <Text style={{ fontSize: 10, color: '#999', marginTop: 4 }}>
+          <Text className="premium-trend-date">
             {d.date?.slice(5)}
           </Text>
+          <Text className="premium-trend-value">{d.total}</Text>
         </div>
       ))}
     </div>
@@ -92,8 +91,11 @@ export default function Dashboard() {
   }));
 
   return (
-    <div style={{ maxWidth: 1400 }}>
-      <Title level={4} style={{ marginBottom: 24 }}>Dashboard Overview</Title>
+    <div className="dashboard-premium">
+      <Title level={4} style={{ marginBottom: 4 }}>Dashboard Overview</Title>
+      <Text type="secondary" style={{ display: 'block', marginBottom: 24 }}>
+        Live risk posture with alert momentum and trigger concentration.
+      </Text>
 
       {/* KPI Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
@@ -122,7 +124,14 @@ export default function Dashboard() {
         <Col xs={24} lg={12}>
           <Card title="Alert Trend (Last 7 Days)" style={{ height: 260 }}>
             {data.alertTrend.length > 0 ? (
-              <SimpleBarChart data={data.alertTrend} />
+              <>
+                <SimpleBarChart data={data.alertTrend} />
+                <div className="premium-chart-legend">
+                  <span><i className="dot-high" /> High</span>
+                  <span><i className="dot-medium" /> Medium</span>
+                  <span><i className="dot-low" /> Low</span>
+                </div>
+              </>
             ) : (
               <div style={{ textAlign: 'center', color: '#999', paddingTop: 40 }}>No data available</div>
             )}
@@ -168,6 +177,7 @@ export default function Dashboard() {
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12}>
           <Card
+            className="premium-nav-card premium-nav-alerts"
             hoverable
             onClick={() => navigate('/alerts')}
             style={{ cursor: 'pointer', borderColor: '#ff4d4f' }}
@@ -186,6 +196,7 @@ export default function Dashboard() {
         </Col>
         <Col xs={24} sm={12}>
           <Card
+            className="premium-nav-card premium-nav-transactions"
             hoverable
             onClick={() => navigate('/transactions')}
             style={{ cursor: 'pointer', borderColor: '#1890ff' }}

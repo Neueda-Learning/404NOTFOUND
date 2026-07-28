@@ -54,9 +54,9 @@ function AlertSummaryCard({ alert, onAction }: { alert: AlertDetail; onAction: (
   }
 
   return (
-    <Card style={{ marginBottom: 24 }}>
+    <Card className="alert-summary-card" style={{ marginBottom: 24 }}>
       <Row align="middle" gutter={24}>
-        <Col flex="auto">
+        <Col flex="auto" className="alert-summary-main">
           <Title level={4} style={{ margin: 0 }}>{alert.title}</Title>
           <Space style={{ marginTop: 4 }}>
             <Text code>{alert.alertId}</Text>
@@ -73,13 +73,19 @@ function AlertSummaryCard({ alert, onAction }: { alert: AlertDetail; onAction: (
           <Space direction="vertical" size={8}>
             <Tag color={statusColor[alert.status]} style={{ fontSize: 14, padding: '4px 12px' }}>{alert.status}</Tag>
             <Tag color={severityColor[alert.severity]} style={{ fontSize: 14, padding: '4px 12px' }}>{alert.severity}</Tag>
-            <div>
+            <div className="risk-score-block">
               <Text type="secondary" style={{ fontSize: 12 }}>Risk Score</Text>
               <Progress
                 type="circle"
                 percent={alert.riskScore}
                 size={60}
-                strokeColor={alert.riskScore >= 75 ? '#ff4d4f' : alert.riskScore >= 50 ? '#faad14' : '#52c41a'}
+                strokeColor={
+                  alert.riskScore >= 75
+                    ? { '0%': '#ff7a7a', '100%': '#b4232e' }
+                    : alert.riskScore >= 50
+                      ? { '0%': '#ffd26a', '100%': '#bd6d00' }
+                      : { '0%': '#8ed4aa', '100%': '#1f8f55' }
+                }
                 format={p => <span style={{ fontSize: 14, fontWeight: 700 }}>{p}</span>}
               />
             </div>
@@ -159,18 +165,18 @@ function TriggerRuleCard({ alert }: { alert: AlertDetail }) {
 }
 
 function InvestigationPanel({
-  alert, onSubmit, loading: submitting,
+  alert, onSubmit, loading: submitting, confirmAction, setConfirmAction,
 }: {
   alert: AlertDetail;
   onSubmit: (action: string, req: AlertActionRequest) => Promise<void>;
   loading: boolean;
+  confirmAction: string | null;
+  setConfirmAction: (value: string | null) => void;
 }) {
   const [comment, setComment] = useState(alert.comment || '');
   const [resolutionCode, setResolutionCode] = useState<ResolutionCode | undefined>(alert.resolutionCode);
   const [resolutionNotes, setResolutionNotes] = useState(alert.resolutionNotes || '');
   const [commentError, setCommentError] = useState('');
-  const [confirmAction, setConfirmAction] = useState<string | null>(null);
-
   const stepItems = [
     {
       title: 'Alert Created',
@@ -215,7 +221,7 @@ function InvestigationPanel({
   };
 
   return (
-    <Card title="Investigation Panel" style={{ position: 'sticky', top: 80 }}>
+    <Card title="Investigation Panel" className="investigation-panel-card" style={{ position: 'sticky', top: 80 }}>
       <Title level={5}>Progress</Title>
       <Steps direction="vertical" size="small" items={stepItems} style={{ marginBottom: 16 }} />
 
@@ -256,7 +262,7 @@ function InvestigationPanel({
       {/* Confirmation Modal */}
       <Modal
         open={!!confirmAction}
-        title={<Space><ExclamationCircleOutlined style={{ color: '#faad14' }} /> Confirm Action</ Space>}
+        title={<Space><ExclamationCircleOutlined style={{ color: '#faad14' }} /> Confirm Action</Space>}
         onOk={handleConfirm}
         onCancel={() => setConfirmAction(null)}
         confirmLoading={submitting}
@@ -331,6 +337,7 @@ export default function AlertDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<string | null>(null);
 
   const load = () => {
     if (!id) return;
@@ -379,17 +386,15 @@ export default function AlertDetail() {
   if (!alert) return null;
 
   return (
-    <div>
+    <div className="alert-detail-page">
       {/* Breadcrumb */}
-      <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="alert-detail-breadcrumb" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
         <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/alerts')}>Back to Alerts</Button>
         <StatusBreadcrumb alertId={alert.alertId} />
       </div>
 
       {/* Summary */}
-      <AlertSummaryCard alert={alert} onAction={(_action) => {
-        // For acknowledge/investigate the panel handles it
-      }} />
+      <AlertSummaryCard alert={alert} onAction={(action) => setConfirmAction(action)} />
 
       {/* Main Content - 2 column layout */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
@@ -398,7 +403,13 @@ export default function AlertDetail() {
           <TriggerRuleCard alert={alert} />
         </Col>
         <Col xs={24} lg={8}>
-          <InvestigationPanel alert={alert} onSubmit={handleAction} loading={actionLoading} />
+          <InvestigationPanel
+            alert={alert}
+            onSubmit={handleAction}
+            loading={actionLoading}
+            confirmAction={confirmAction}
+            setConfirmAction={setConfirmAction}
+          />
         </Col>
       </Row>
 
