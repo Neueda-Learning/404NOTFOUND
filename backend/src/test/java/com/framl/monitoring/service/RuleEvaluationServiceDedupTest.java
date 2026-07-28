@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -94,8 +95,22 @@ class RuleEvaluationServiceDedupTest {
         verify(alertHistoryRepository, never()).save(any());
     }
 
-        @Test
-        void velocityAggregateExcludesCurrentTransactionFromQuery() {
+    @Test
+    void propagatesRuleEvaluationExceptionInsteadOfSwallowing() {
+        Rule rule = velocityRule();
+        Transaction tx = completedDebitTransaction();
+
+        when(ruleRepository.findByActiveTrue()).thenReturn(List.of(rule));
+        when(transactionRepository.countVelocityTransactions(anyString(), any(), any(), any(), anyString()))
+                .thenThrow(new RuntimeException("simulated repository failure"));
+
+        assertThrows(IllegalStateException.class, () -> service.evaluate(tx));
+
+        verify(alertRepository, never()).save(any(com.framl.monitoring.entity.Alert.class));
+    }
+
+    @Test
+    void velocityAggregateExcludesCurrentTransactionFromQuery() {
         Rule rule = velocityRule();
         Transaction tx = completedDebitTransaction();
 
@@ -103,33 +118,33 @@ class RuleEvaluationServiceDedupTest {
         when(transactionRepository.countVelocityTransactions(anyString(), any(), any(), any(), anyString())).thenReturn(3L);
         when(alertRepository.existsByDeduplicationKey(anyString())).thenReturn(false);
         when(alertRepository.save(any(com.framl.monitoring.entity.Alert.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         service.evaluate(tx);
 
         verify(transactionRepository, times(1)).countVelocityTransactions(
-            eq("ACC-001"), any(), any(), eq(Instant.parse("2026-07-28T10:00:00Z")), eq("TX-001"));
+                eq("ACC-001"), any(), any(), eq(Instant.parse("2026-07-28T10:00:00Z")), eq("TX-001"));
         verify(alertRepository, times(2)).save(any(com.framl.monitoring.entity.Alert.class));
-        }
+    }
 
-        @Test
-        void dailyLimitAggregateExcludesCurrentTransactionFromQuery() {
+    @Test
+    void dailyLimitAggregateExcludesCurrentTransactionFromQuery() {
         Rule rule = dailyLimitRule();
         Transaction tx = completedDebitTransaction();
 
         when(ruleRepository.findByActiveTrue()).thenReturn(List.of(rule));
         when(transactionRepository.sumDailyAmount(anyString(), anyString(), any(), any(), anyString()))
-            .thenReturn(new BigDecimal("50000.00"));
+                .thenReturn(new BigDecimal("50000.00"));
         when(alertRepository.existsByDeduplicationKey(anyString())).thenReturn(false);
         when(alertRepository.save(any(com.framl.monitoring.entity.Alert.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         service.evaluate(tx);
 
         verify(transactionRepository, times(1)).sumDailyAmount(
-            eq("ACC-001"), eq("USD"), any(), eq(Instant.parse("2026-07-28T10:00:00Z")), eq("TX-001"));
+                eq("ACC-001"), eq("USD"), any(), eq(Instant.parse("2026-07-28T10:00:00Z")), eq("TX-001"));
         verify(alertRepository, times(2)).save(any(com.framl.monitoring.entity.Alert.class));
-        }
+    }
 
     private static Rule amountThresholdRule() {
         Rule rule = new Rule();

@@ -31,12 +31,28 @@ public class RuleEvaluationService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void evaluate(Transaction tx) {
         List<Rule> activeRules = ruleRepository.findByActiveTrue();
+        RuntimeException evaluationFailure = null;
+
         for (Rule rule : activeRules) {
             try {
                 evaluateRule(tx, rule);
             } catch (Exception e) {
                 log.error("Rule evaluation error for rule {} on tx {}: {}", rule.getId(), tx.getTransactionId(), e.getMessage());
+
+                IllegalStateException wrapped = new IllegalStateException(
+                    String.format("Rule evaluation failed for rule %s on transaction %s", rule.getId(), tx.getTransactionId()),
+                    e
+                );
+                if (evaluationFailure == null) {
+                    evaluationFailure = wrapped;
+                } else {
+                    evaluationFailure.addSuppressed(wrapped);
+                }
             }
+        }
+
+        if (evaluationFailure != null) {
+            throw evaluationFailure;
         }
     }
 

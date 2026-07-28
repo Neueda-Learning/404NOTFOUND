@@ -71,7 +71,7 @@ class RuleEvaluationServiceTest {
     }
 
     @Test
-    void evaluate_continuesOnRuleEvaluationError() {
+    void evaluate_throwsWhenRuleEvaluationErrorOccurs() {
         Transaction tx = createTestTransaction("TXN-001", "ACC-001", BigDecimal.valueOf(5000), 
                                               TransactionStatus.COMPLETED);
         Rule rule1 = createTestRule(1L, RuleType.AMOUNT_THRESHOLD, true, BigDecimal.valueOf(4000));
@@ -82,10 +82,8 @@ class RuleEvaluationServiceTest {
                 .thenThrow(new RuntimeException("Database error"))
                 .thenReturn(new Alert());
 
-        // Should not throw, continues processing despite error
-        assertDoesNotThrow(() -> ruleEvaluationService.evaluate(tx));
-        
-        // At least 1 attempt was made (the second rule's save succeeded)
+        assertThrows(IllegalStateException.class, () -> ruleEvaluationService.evaluate(tx));
+
         verify(alertRepository, atLeastOnce()).save(any(Alert.class));
     }
 
@@ -164,7 +162,7 @@ class RuleEvaluationServiceTest {
 
         when(ruleRepository.findByActiveTrue()).thenReturn(List.of(rule));
         when(transactionRepository.countVelocityTransactions(
-                eq("ACC-001"), anyList(), any(Instant.class), any(Instant.class)))
+            eq("ACC-001"), anyList(), any(Instant.class), any(Instant.class), eq("TXN-001")))
                 .thenReturn(6L); // 6 transactions > 5 max
         when(alertRepository.save(any(Alert.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -174,7 +172,7 @@ class RuleEvaluationServiceTest {
         verify(alertRepository, atLeastOnce()).save(alertCaptor.capture());
         
         Alert alert = alertCaptor.getValue();
-        assertTrue(alert.getTriggerReason().contains("6 transactions"));
+        assertTrue(alert.getTriggerReason().contains("7 transactions"));
         assertEquals(60, alert.getTimeWindowMinutes());
     }
 
@@ -189,7 +187,7 @@ class RuleEvaluationServiceTest {
 
         when(ruleRepository.findByActiveTrue()).thenReturn(List.of(rule));
         when(transactionRepository.countVelocityTransactions(
-                eq("ACC-001"), anyList(), any(Instant.class), any(Instant.class)))
+            eq("ACC-001"), anyList(), any(Instant.class), any(Instant.class), eq("TXN-001")))
                 .thenReturn(5L); // 5 <= 10 max
 
         ruleEvaluationService.evaluate(tx);
@@ -265,7 +263,7 @@ class RuleEvaluationServiceTest {
 
         when(ruleRepository.findByActiveTrue()).thenReturn(List.of(rule));
         when(transactionRepository.sumDailyAmount(
-                eq("ACC-001"), eq("USD"), any(Instant.class), any(Instant.class)))
+            eq("ACC-001"), eq("USD"), any(Instant.class), any(Instant.class), eq("TXN-001")))
                 .thenReturn(BigDecimal.valueOf(15000)); // Exceeds 10000 limit
         when(alertRepository.save(any(Alert.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -275,6 +273,7 @@ class RuleEvaluationServiceTest {
         verify(alertRepository, atLeastOnce()).save(alertCaptor.capture());
         
         Alert alert = alertCaptor.getValue();
+        assertTrue(alert.getTriggerReason().contains("20000"));
         assertTrue(alert.getTriggerReason().contains("Daily total"));
     }
 
@@ -309,7 +308,7 @@ class RuleEvaluationServiceTest {
         
         Alert alert = alertCaptor.getValue();
         assertNotNull(alert.getAlertId());
-        assertTrue(alert.getAlertId().contains("ALT-"));
+        assertTrue(alert.getAlertId().matches("^[0-9a-fA-F-]{36}$"));
         assertEquals("Test Rule - ACC-001", alert.getTitle());
         assertEquals("TXN-001", alert.getPrimaryTransactionId());
         assertEquals(BigDecimal.valueOf(5000), alert.getTotalAmount());
