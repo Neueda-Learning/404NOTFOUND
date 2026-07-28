@@ -37,8 +37,8 @@ public interface AlertRepository extends JpaRepository<Alert, String> {
     @Query("SELECT COUNT(a) FROM Alert a WHERE a.createdAt >= :start AND a.createdAt <= :end")
     long countByCreatedAtBetween(@Param("start") Instant start, @Param("end") Instant end);
 
-    @Query("SELECT DATE(a.createdAt) as date, COUNT(a) as count, a.severity as severity " +
-           "FROM Alert a WHERE a.createdAt >= :start GROUP BY DATE(a.createdAt), a.severity ORDER BY DATE(a.createdAt)")
+    @Query("SELECT CAST(a.createdAt AS date) as date, COUNT(a) as count, a.severity as severity " +
+           "FROM Alert a WHERE a.createdAt >= :start GROUP BY CAST(a.createdAt AS date), a.severity ORDER BY CAST(a.createdAt AS date)")
     List<Object[]> getAlertTrendRaw(@Param("start") Instant start);
 
     @Query("SELECT a.ruleName as ruleName, COUNT(a) as count FROM Alert a " +

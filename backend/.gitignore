@@ -5,3 +5,7 @@ target/
 .mvn/
 !.mvn/wrapper/maven-wrapper.jar
 !.mvn/wrapper/maven-wrapper.properties
+
+# Database configuration (local, may contain credentials)
+src/main/resources/application.yml
+!src/main/resources/application-template.yml

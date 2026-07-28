@@ -7,7 +7,7 @@ import {
 import {
   SearchOutlined, ReloadOutlined, CopyOutlined,
 } from '@ant-design/icons';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
 import { searchAlerts } from '../api/alerts';
 import { getAlert } from '../api/alerts';
@@ -120,7 +120,18 @@ export default function AlertsList() {
     },
     { title: 'Account ID', dataIndex: 'accountId', width: 130, ellipsis: true },
     { title: 'Payee ID', dataIndex: 'primaryPayeeId', width: 120, ellipsis: true, render: v => v || '-' },
-    { title: 'Transaction ID', dataIndex: 'primaryTransactionId', width: 140, ellipsis: true, render: v => v || '-' },
+    {
+      title: 'Transaction ID',
+      dataIndex: 'primaryTransactionId',
+      width: 140,
+      ellipsis: true,
+      render: (v: string | undefined) =>
+        v ? (
+          <Link to={`/transactions/${v}`} onClick={e => e.stopPropagation()}>
+            <Text code style={{ fontSize: 12 }}>{v}</Text>
+          </Link>
+        ) : '-',
+    },
     {
       title: 'Amount',
       dataIndex: 'totalAmount',

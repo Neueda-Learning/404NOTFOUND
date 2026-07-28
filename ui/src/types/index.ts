@@ -28,6 +28,8 @@ export interface Transaction {
   hasAlert?: boolean;
   alertId?: string;
   alertStatus?: string;
+  alertCount?: number;
+  alertIds?: string[];
 }
 
 // ==================== Alert ====================
