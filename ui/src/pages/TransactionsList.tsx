@@ -2,11 +2,13 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   Table, Tag, Button, Input, Select, Row, Col,
   Typography, Alert as AntAlert, Modal, Descriptions,
+  Form, InputNumber, DatePicker, message,
 } from 'antd';
-import { SearchOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
+import { SearchOutlined, ReloadOutlined, EyeOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
-import { searchTransactions, getTransaction } from '../api/transactions';
+import dayjs from 'dayjs';
+import { searchTransactions, getTransaction, createTransaction } from '../api/transactions';
 import type { Transaction, TransactionStatus, TransactionType } from '../types';
 import {
   formatTime, txStatusColor, txTypeColor, formatAmount, statusColor,
@@ -17,6 +19,165 @@ const { Option } = Select;
 
 const statusOptions: TransactionStatus[] = ['PENDING', 'COMPLETED', 'FAILED', 'CANCELLED', 'REVERSED'];
 const typeOptions: TransactionType[] = ['DEBIT', 'CREDIT', 'TRANSFER', 'REFUND'];
+const currencyOptions = ['USD', 'EUR', 'GBP', 'CNY'];
+
+interface CreateTransactionFormValues {
+  transactionId?: string;
+  accountId: string;
+  payeeId?: string;
+  payeeName?: string;
+  type: TransactionType;
+  amount: number;
+  currency: string;
+  status: TransactionStatus;
+  transactionTime: dayjs.Dayjs;
+  paymentChannel?: string;
+  country?: string;
+  description?: string;
+}
+
+function CreateTransactionModal({
+  open, onClose, onCreated,
+}: {
+  open: boolean; onClose: () => void; onCreated: () => void;
+}) {
+  const [form] = Form.useForm<CreateTransactionFormValues>();
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleOk = async () => {
+    try {
+      const values = await form.validateFields();
+      setSubmitting(true);
+      const transactionId = values.transactionId?.trim() || `TXN-${Date.now()}`;
+      await createTransaction({
+        transactionId,
+        accountId: values.accountId,
+        payeeId: values.payeeId,
+        payeeName: values.payeeName,
+        type: values.type,
+        amount: values.amount,
+        currency: values.currency,
+        status: values.status,
+        transactionTime: values.transactionTime.toISOString(),
+        paymentChannel: values.paymentChannel,
+        country: values.country,
+        description: values.description,
+      });
+      message.success(`Transaction ${transactionId} created`);
+      form.resetFields();
+      onCreated();
+    } catch (e: any) {
+      if (e?.errorFields) return; // validation error, keep modal open
+      message.error(e?.response?.data?.message || e?.message || 'Failed to create transaction');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCancel = () => {
+    form.resetFields();
+    onClose();
+  };
+
+  return (
+    <Modal
+      open={open}
+      title="Create Transaction"
+      onCancel={handleCancel}
+      onOk={handleOk}
+      confirmLoading={submitting}
+      okText="Create"
+      width={640}
+      destroyOnClose
+    >
+      <Form<CreateTransactionFormValues>
+        form={form}
+        layout="vertical"
+        initialValues={{
+          currency: 'USD',
+          status: 'COMPLETED',
+          type: 'DEBIT',
+          transactionTime: dayjs(),
+        }}
+      >
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item label="Transaction ID" name="transactionId" tooltip="Leave blank to auto-generate">
+              <Input placeholder="Auto-generated if left blank" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Account ID" name="accountId" rules={[{ required: true, message: 'Account ID is required' }]}>
+              <Input placeholder="ACC-001" />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item label="Payee ID" name="payeeId">
+              <Input placeholder="PAYEE-001" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Payee Name" name="payeeName">
+              <Input placeholder="Payee display name" />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          <Col span={8}>
+            <Form.Item label="Type" name="type" rules={[{ required: true }]}>
+              <Select>
+                {typeOptions.map(t => <Option key={t} value={t}>{t}</Option>)}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item label="Amount" name="amount" rules={[{ required: true, message: 'Amount is required' }]}>
+              <InputNumber<number> style={{ width: '100%' }} min={0.01} step={0.01} precision={2} placeholder="0.00" />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item label="Currency" name="currency" rules={[{ required: true }]}>
+              <Select>
+                {currencyOptions.map(c => <Option key={c} value={c}>{c}</Option>)}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item label="Status" name="status" rules={[{ required: true }]}>
+              <Select>
+                {statusOptions.map(s => <Option key={s} value={s}>{s}</Option>)}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Transaction Time" name="transactionTime" rules={[{ required: true, message: 'Transaction time is required' }]}>
+              <DatePicker showTime style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item label="Payment Channel" name="paymentChannel">
+              <Input placeholder="WIRE / ONLINE / POS" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Country" name="country">
+              <Input placeholder="US" />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Form.Item label="Description" name="description">
+          <Input.TextArea rows={2} placeholder="Optional description" />
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+}
 
 function TransactionDetailModal({
   tx, open, onClose, onViewAlert,
@@ -119,6 +280,7 @@ export default function TransactionsList() {
 
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -199,7 +361,6 @@ export default function TransactionsList() {
       align: 'right',
       render: (v, r) => <Text strong>{formatAmount(v, r.currency)}</Text>,
     },
-    { title: 'Currency', dataIndex: 'currency', width: 70 },
     {
       title: 'Status',
       dataIndex: 'status',
@@ -257,6 +418,11 @@ export default function TransactionsList() {
         <Col>
           <Button icon={<ReloadOutlined />} onClick={load}>Refresh</Button>
         </Col>
+        <Col flex="auto" style={{ textAlign: 'right' }}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
+            Create Transaction
+          </Button>
+        </Col>
       </Row>
 
       {error && (
@@ -293,6 +459,12 @@ export default function TransactionsList() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onViewAlert={alertId => navigate(`/alerts/${alertId}`)}
+      />
+
+      <CreateTransactionModal
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onCreated={() => { setCreateModalOpen(false); setPage(0); load(); }}
       />
     </div>
   );
