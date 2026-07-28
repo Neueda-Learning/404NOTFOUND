@@ -15,6 +15,36 @@ import { severityColor } from '../utils/format';
 
 const { Title, Text } = Typography;
 
+const DEMO_DASHBOARD_DATA: DSType = {
+  openAlerts: 21,
+  underInvestigation: 8,
+  todaysAlerts: 11,
+  highRiskAlerts: 14,
+  todaysTransactions: 312,
+  alertRate: 9.3,
+  alertTrend: [
+    { date: '2026-07-22', high: 2, medium: 3, low: 2, total: 7 },
+    { date: '2026-07-23', high: 3, medium: 2, low: 3, total: 8 },
+    { date: '2026-07-24', high: 2, medium: 3, low: 3, total: 8 },
+    { date: '2026-07-25', high: 4, medium: 3, low: 2, total: 9 },
+    { date: '2026-07-26', high: 3, medium: 4, low: 2, total: 9 },
+    { date: '2026-07-27', high: 5, medium: 3, low: 1, total: 9 },
+    { date: '2026-07-28', high: 4, medium: 4, low: 2, total: 10 },
+  ],
+  severityDistribution: {
+    HIGH: 14,
+    MEDIUM: 9,
+    LOW: 6,
+  },
+  topTriggeredRules: [
+    { ruleName: 'High-value USD debit', triggerCount: 16 },
+    { ruleName: 'Daily USD debit total above 50,000', triggerCount: 11 },
+    { ruleName: 'More than 5 debits in 10 minutes', triggerCount: 9 },
+    { ruleName: 'First completed debit to payee', triggerCount: 7 },
+    { ruleName: 'Velocity + New Payee correlation', triggerCount: 5 },
+  ],
+};
+
 const StatCard: FC<{
   title: string; value: number | string; icon: ReactNode;
   color?: string; suffix?: string; precision?: number;
@@ -22,7 +52,7 @@ const StatCard: FC<{
   <Card styles={{ body: { padding: '20px 24px' } }}>
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <Statistic
-        title={title}
+        title={<span className="kpi-title-one-line">{title}</span>}
         value={value}
         suffix={suffix}
         precision={precision}
@@ -69,21 +99,27 @@ export default function Dashboard() {
   const [data, setData] = useState<DSType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [usingFallbackData, setUsingFallbackData] = useState(false);
   const navigate = useNavigate();
 
   const load = () => {
     setLoading(true);
     setError(null);
+    setUsingFallbackData(false);
     getDashboardSummary()
       .then(setData)
-      .catch(e => setError(e.message))
+      .catch(e => {
+        setData(DEMO_DASHBOARD_DATA);
+        setUsingFallbackData(true);
+        setError(e.message);
+      })
       .finally(() => setLoading(false));
   };
 
   useEffect(() => { load(); }, []);
 
   if (loading) return <div style={{ textAlign: 'center', padding: 80 }}><Spin size="large" /></div>;
-  if (error) return <Alert type="error" message={error} action={<Button onClick={load}>Retry</Button>} />;
+  if (error && !data) return <Alert type="error" message={error} action={<Button onClick={load}>Retry</Button>} />;
   if (!data) return null;
 
   const severityRows = Object.entries(data.severityDistribution).map(([sev, count]) => ({
@@ -92,37 +128,70 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-premium">
+      {usingFallbackData && (
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message="Backend is unavailable. Showing demo dashboard data."
+          action={<Button onClick={load}>Retry API</Button>}
+        />
+      )}
       <Title level={4} style={{ marginBottom: 4 }}>Dashboard Overview</Title>
       <Text type="secondary" style={{ display: 'block', marginBottom: 24 }}>
         Live risk posture with alert momentum and trigger concentration.
       </Text>
 
+      <Card className="dashboard-hero-card" style={{ marginBottom: 20 }}>
+        <div className="dashboard-hero-layout">
+          <div>
+            <Text className="dashboard-hero-eyebrow">Operational Snapshot</Text>
+            <Title level={3} style={{ margin: '8px 0 8px' }}>
+              {data.openAlerts + data.underInvestigation} active alert cases
+            </Title>
+            <Text type="secondary">
+              Strongest signal today comes from high risk events and top triggered rules.
+            </Text>
+            <div className="dashboard-hero-chips">
+              <span className="hero-chip hero-chip-danger">{data.highRiskAlerts} High risk</span>
+              <span className="hero-chip hero-chip-info">{data.todaysAlerts} New today</span>
+              <span className="hero-chip hero-chip-success">{data.todaysTransactions} Transactions</span>
+            </div>
+          </div>
+          <Button type="primary" size="large" onClick={() => navigate('/alerts')}>
+            Go To Alerts Queue
+          </Button>
+        </div>
+      </Card>
+
       {/* KPI Cards */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} lg={4}>
+      <div className="kpi-row-wrap" style={{ marginBottom: 24 }}>
+        <Row className="kpi-row" gutter={[16, 16]} wrap={false}>
+        <Col className="kpi-col" flex="1 0 0">
           <StatCard title="Open Alerts" value={data.openAlerts} icon={<AlertOutlined />} color="#ff4d4f" />
         </Col>
-        <Col xs={24} sm={12} lg={4}>
+        <Col className="kpi-col" flex="1 0 0">
           <StatCard title="Under Investigation" value={data.underInvestigation} icon={<EyeOutlined />} color="#1890ff" />
         </Col>
-        <Col xs={24} sm={12} lg={4}>
+        <Col className="kpi-col" flex="1 0 0">
           <StatCard title="Today's Alerts" value={data.todaysAlerts} icon={<AlertOutlined />} color="#fa8c16" />
         </Col>
-        <Col xs={24} sm={12} lg={4}>
+        <Col className="kpi-col" flex="1 0 0">
           <StatCard title="High Risk Alerts" value={data.highRiskAlerts} icon={<AlertOutlined />} color="#cf1322" />
         </Col>
-        <Col xs={24} sm={12} lg={4}>
+        <Col className="kpi-col" flex="1 0 0">
           <StatCard title="Today's Transactions" value={data.todaysTransactions} icon={<SwapOutlined />} color="#52c41a" />
         </Col>
-        <Col xs={24} sm={12} lg={4}>
+        <Col className="kpi-col" flex="1 0 0">
           <StatCard title="Alert Rate" value={data.alertRate} suffix="%" precision={1} icon={<RiseOutlined />} color="#225b7d" />
         </Col>
-      </Row>
+        </Row>
+      </div>
 
       {/* Charts Row */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} lg={12}>
-          <Card className="dashboard-chart-card" title="Alert Trend (Last 7 Days)" style={{ height: 260 }}>
+          <Card className="dashboard-chart-card" title="Alert Trend (Last 7 Days)">
             {data.alertTrend.length > 0 ? (
               <>
                 <SimpleBarChart data={data.alertTrend} />
@@ -138,8 +207,8 @@ export default function Dashboard() {
           </Card>
         </Col>
 
-        <Col xs={24} lg={6}>
-          <Card className="dashboard-chart-card" title="Severity Distribution" style={{ height: 260 }}>
+        <Col xs={24} md={12} lg={6}>
+          <Card className="dashboard-side-card" title="Severity Distribution">
             {severityRows.map(({ severity, count }) => (
               <div key={severity} style={{ marginBottom: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -157,17 +226,18 @@ export default function Dashboard() {
           </Card>
         </Col>
 
-        <Col xs={24} lg={6}>
-          <Card className="dashboard-chart-card" title="Top Triggered Rules" style={{ height: 260 }}>
+        <Col xs={24} md={12} lg={6}>
+          <Card className="dashboard-side-card" title="Top Triggered Rules">
             <Table<TopRule>
-              className="monitor-table"
+              className="monitor-table dashboard-rules-table"
               dataSource={data.topTriggeredRules.slice(0, 5)}
               rowKey="ruleName"
               size="small"
               pagination={false}
+              tableLayout="fixed"
               columns={[
-                { title: 'Rule', dataIndex: 'ruleName', ellipsis: true },
-                { title: 'Count', dataIndex: 'triggerCount', width: 60, align: 'right' },
+                { title: 'Rule', dataIndex: 'ruleName', ellipsis: { showTitle: true } },
+                { title: 'Count', dataIndex: 'triggerCount', width: 70, align: 'right' },
               ]}
             />
           </Card>
