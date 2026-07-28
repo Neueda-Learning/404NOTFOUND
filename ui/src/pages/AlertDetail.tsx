@@ -46,7 +46,7 @@ const actionTargetStatus: Record<string, AlertDetail['status']> = {
 function StatusBreadcrumb({ alertId }: { alertId: string }) {
   const navigate = useNavigate();
   return (
-    <Space split="/">
+    <Space split="/" wrap>
       <Button type="link" style={{ padding: 0 }} onClick={() => navigate('/')}>Dashboard</Button>
       <Button type="link" style={{ padding: 0 }} onClick={() => navigate('/alerts')}>Alerts</Button>
       <Text>{alertId}</Text>
@@ -384,7 +384,7 @@ export default function AlertDetail() {
   };
 
   const txColumns: ColumnsType<Transaction> = [
-    { title: 'Transaction ID', dataIndex: 'transactionId', width: 150, ellipsis: true, render: v => <Text code style={{ fontSize: 12 }}>{v}</Text> },
+    { title: 'Transaction ID', dataIndex: 'transactionId', width: 150, ellipsis: true, render: v => <Text code style={{ fontSize: 13 }}>{v}</Text> },
     { title: 'Payee', dataIndex: 'payeeName', ellipsis: true, render: (v, r) => v || r.payeeId || '-' },
     {
       title: 'Amount', dataIndex: 'amount', align: 'right', width: 130,
@@ -470,7 +470,7 @@ export default function AlertDetail() {
         {alert.statusHistory && alert.statusHistory.length > 0 ? (
           <Timeline
             items={alert.statusHistory.map(h => ({
-              color: h.toStatus === 'CLOSED' ? 'green' : h.toStatus === 'DISMISSED' ? 'gray' : 'blue',
+              color: statusColor[h.toStatus],
               children: (
                 <div style={{ paddingBottom: 8 }}>
                   <Space wrap>
@@ -478,8 +478,8 @@ export default function AlertDetail() {
                     {h.fromStatus && <Tag>{h.fromStatus}</Tag>}
                     <span>→</span>
                     <Tag color={statusColor[h.toStatus]} className={`monitor-status-tag ${alertStatusClass[h.toStatus]}`}>{h.toStatus}</Tag>
-                    <Text type="secondary" style={{ fontSize: 12 }}>{formatTime(h.changedAt)}</Text>
-                    <Text type="secondary" style={{ fontSize: 12 }}>by {h.changedBy}</Text>
+                    <Text type="secondary" style={{ fontSize: 13 }}>{formatTime(h.changedAt)}</Text>
+                    <Text type="secondary" style={{ fontSize: 13 }}>by {h.changedBy}</Text>
                   </Space>
                   {h.comment && <div style={{ marginTop: 4 }}><Text type="secondary">{h.comment}</Text></div>}
                   {h.resolution && <Tag style={{ marginTop: 4 }}>{resolutionCodeLabels[h.resolution] || h.resolution}</Tag>}

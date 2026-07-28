@@ -98,7 +98,7 @@ export default function AlertsList() {
       width: 160,
       render: (id: string) => (
         <Space>
-          <Text code style={{ fontSize: 12 }}>{id}</Text>
+          <Text code style={{ fontSize: 13 }}>{id}</Text>
           <Tooltip title="Copy">
             <CopyOutlined
               style={{ cursor: 'pointer', color: '#1890ff' }}
@@ -114,7 +114,7 @@ export default function AlertsList() {
       width: 160,
       render: (v: string) => (
         <Tooltip title={v}>
-          <span style={{ fontSize: 12 }}>{formatTime(v)}</span>
+          <span style={{ fontSize: 13 }}>{formatTime(v)}</span>
         </Tooltip>
       ),
     },

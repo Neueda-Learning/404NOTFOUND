@@ -122,7 +122,7 @@ export default function Dashboard() {
       {/* Charts Row */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} lg={12}>
-          <Card title="Alert Trend (Last 7 Days)" style={{ height: 260 }}>
+          <Card className="dashboard-chart-card" title="Alert Trend (Last 7 Days)" style={{ height: 260 }}>
             {data.alertTrend.length > 0 ? (
               <>
                 <SimpleBarChart data={data.alertTrend} />
@@ -139,7 +139,7 @@ export default function Dashboard() {
         </Col>
 
         <Col xs={24} lg={6}>
-          <Card title="Severity Distribution" style={{ height: 260 }}>
+          <Card className="dashboard-chart-card" title="Severity Distribution" style={{ height: 260 }}>
             {severityRows.map(({ severity, count }) => (
               <div key={severity} style={{ marginBottom: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -148,7 +148,7 @@ export default function Dashboard() {
                 </div>
                 <Progress
                   percent={data.openAlerts > 0 ? Math.round((count / (data.openAlerts + data.underInvestigation + 1)) * 100) : 0}
-                  strokeColor={severityColor[severity] === 'red' ? '#ff4d4f' : severityColor[severity] === 'orange' ? '#faad14' : '#1890ff'}
+                  strokeColor={severityColor[severity]}
                   showInfo={false}
                   size="small"
                 />
@@ -158,7 +158,7 @@ export default function Dashboard() {
         </Col>
 
         <Col xs={24} lg={6}>
-          <Card title="Top Triggered Rules" style={{ height: 260 }}>
+          <Card className="dashboard-chart-card" title="Top Triggered Rules" style={{ height: 260 }}>
             <Table<TopRule>
               className="monitor-table"
               dataSource={data.topTriggeredRules.slice(0, 5)}
@@ -183,13 +183,13 @@ export default function Dashboard() {
             onClick={() => navigate('/alerts')}
             style={{ cursor: 'pointer', borderColor: '#ff4d4f' }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="premium-nav-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ fontSize: 32 }}>🚨</div>
                 <Title level={4} style={{ margin: '8px 0 4px' }}>Risk Alerts</Title>
                 <Text type="secondary">{data.openAlerts} open alerts requiring attention</Text>
               </div>
-              <Button type="primary" danger icon={<ArrowRightOutlined />}>
+              <Button className="premium-nav-action" type="primary" danger icon={<ArrowRightOutlined />}>
                 View All Alerts
               </Button>
             </div>
@@ -202,13 +202,13 @@ export default function Dashboard() {
             onClick={() => navigate('/transactions')}
             style={{ cursor: 'pointer', borderColor: '#1890ff' }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="premium-nav-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ fontSize: 32 }}>💳</div>
                 <Title level={4} style={{ margin: '8px 0 4px' }}>All Transactions</Title>
                 <Text type="secondary">{data.todaysTransactions} transactions today</Text>
               </div>
-              <Button type="primary" icon={<ArrowRightOutlined />}>
+              <Button className="premium-nav-action" type="primary" icon={<ArrowRightOutlined />}>
                 View All Transactions
               </Button>
             </div>

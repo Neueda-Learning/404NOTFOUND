@@ -31,6 +31,8 @@ body,
 
 body {
 	font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+	font-size: 14px;
+	line-height: 1.5;
 	color: var(--text-primary);
 	background:
 		radial-gradient(circle at 8% 12%, rgba(66, 121, 170, 0.18) 0, rgba(66, 121, 170, 0) 36%),
@@ -123,6 +125,7 @@ body {
 	font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
 	font-weight: 700;
 	letter-spacing: 0.2px;
+	font-size: clamp(16px, 1.25vw, 22px);
 }
 
 .header-pill {
@@ -323,12 +326,12 @@ body {
 
 .premium-trend-date {
 	margin-top: 6px;
-	font-size: 10px;
+	font-size: 11px;
 	color: #73869a;
 }
 
 .premium-trend-value {
-	font-size: 10px;
+	font-size: 12px;
 	font-weight: 700;
 	color: #23415a;
 }
@@ -337,7 +340,7 @@ body {
 	display: flex;
 	gap: 14px;
 	margin-top: 8px;
-	font-size: 11px;
+	font-size: 12px;
 	color: #607789;
 }
 
@@ -417,6 +420,14 @@ body {
 	row-gap: 12px;
 }
 
+.premium-nav-layout {
+	gap: 16px;
+}
+
+.premium-nav-action {
+	white-space: nowrap;
+}
+
 @keyframes rise-in {
 	from {
 		opacity: 0;
@@ -464,6 +475,8 @@ body {
 
 	.app-header {
 		padding: 0 16px;
+		height: auto;
+		min-height: 62px;
 	}
 
 	.header-pill {
@@ -487,11 +500,43 @@ body {
 	.monitor-table .ant-table-tbody > tr > td {
 		padding: 8px 8px !important;
 	}
+
+	.dashboard-chart-card {
+		height: auto !important;
+	}
 }
 
 @media (max-width: 768px) {
+	.header-title.ant-typography {
+		font-size: 15px;
+		line-height: 1.35;
+	}
+
 	.alert-detail-page {
 		padding-bottom: 10px;
+	}
+
+	.premium-trend-wrap {
+		height: 112px;
+		gap: 8px;
+	}
+
+	.premium-trend-track {
+		height: 84px;
+	}
+
+	.premium-chart-legend {
+		font-size: 11px;
+		gap: 10px;
+	}
+
+	.premium-nav-layout {
+		flex-direction: column;
+		align-items: flex-start !important;
+	}
+
+	.premium-nav-action {
+		width: 100%;
 	}
 
 	.alert-detail-breadcrumb {
