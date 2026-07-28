@@ -17,10 +17,12 @@ A full-stack transaction monitoring and alerting system built with **React + Typ
 
 | Layer     | Technology                                |
 |-----------|--------------------------------------------|
-| Frontend  | React 18 + TypeScript + Vite + Ant Design |
-| Backend   | Java 17 + Spring Boot 3.2 + Spring JPA    |
+| Frontend  | React 19.2.8 + TypeScript 6.0.3 + Vite 8.1.5 + Ant Design 6.5.2 |
+| Backend   | Java 17 + Spring Boot 3.2.5 + Spring JPA  |
 | Database  | MySQL 8.x                                 |
-| API Docs  | SpringDoc OpenAPI / Swagger UI            |
+| API Docs  | SpringDoc OpenAPI 2.5.0 / Swagger UI      |
+
+For the full version matrix, see [docs/project/dependency-versions.md](docs/project/dependency-versions.md).
 
 ## Project Structure
 
@@ -60,7 +62,7 @@ A full-stack transaction monitoring and alerting system built with **React + Typ
 
 - Java 17+
 - Maven 3.9+
-- Node.js 18+
+- Node.js 20+
 - MySQL 8.x
 
 See **[SETUP.md](SETUP.md)** for full local setup instructions (database creation, backend/frontend configuration, and run steps).
