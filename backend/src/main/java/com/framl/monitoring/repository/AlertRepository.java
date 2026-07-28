@@ -15,6 +15,8 @@ import java.util.Map;
 
 public interface AlertRepository extends JpaRepository<Alert, String> {
 
+       boolean existsByDeduplicationKey(String deduplicationKey);
+
     @Query("SELECT a FROM Alert a WHERE " +
            "(:status IS NULL OR a.status = :status) AND " +
            "(:severity IS NULL OR a.severity = :severity) AND " +

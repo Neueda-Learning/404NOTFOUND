@@ -5,6 +5,7 @@ import com.framl.monitoring.enums.*;
 import com.framl.monitoring.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +17,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @Service
@@ -27,8 +27,6 @@ public class RuleEvaluationService {
     private final AlertRepository alertRepository;
     private final AlertHistoryRepository alertHistoryRepository;
     private final TransactionRepository transactionRepository;
-
-    private static final AtomicLong alertCounter = new AtomicLong(System.currentTimeMillis() % 100000);
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void evaluate(Transaction tx) {
@@ -124,10 +122,17 @@ public class RuleEvaluationService {
 
     private void createAlert(Transaction tx, Rule rule, BigDecimal actualValue,
                               BigDecimal thresholdValue, String reason, Integer timeWindow) {
+        String deduplicationKey = buildDeduplicationKey(tx, rule, timeWindow);
+        if (alertRepository.existsByDeduplicationKey(deduplicationKey)) {
+            log.debug("Skip duplicate alert by deduplication key {}", deduplicationKey);
+            return;
+        }
+
         String alertId = generateAlertId();
 
         Alert alert = new Alert();
         alert.setAlertId(alertId);
+        alert.setDeduplicationKey(deduplicationKey);
         alert.setTitle(rule.getName() + " - " + tx.getAccountId());
         alert.setDescription(reason);
         alert.setAccountId(tx.getAccountId());
@@ -149,7 +154,14 @@ public class RuleEvaluationService {
         alert.setThresholdValue(thresholdValue);
         alert.setTimeWindowMinutes(timeWindow);
 
-        Alert saved = alertRepository.save(alert);
+        Alert saved;
+        try {
+            saved = alertRepository.save(alert);
+        } catch (DataIntegrityViolationException ex) {
+            // Handles race conditions where two threads evaluate the same deduplication key concurrently.
+            log.info("Dedup hit on save for key {}. Alert creation skipped.", deduplicationKey);
+            return;
+        }
 
         AlertTransaction at = new AlertTransaction();
         at.setAlert(saved);
@@ -185,8 +197,18 @@ public class RuleEvaluationService {
     }
 
     private String generateAlertId() {
-        long num = alertCounter.incrementAndGet();
-        return String.format("ALT-%d-%05d", 
-                java.time.Year.now().getValue(), num % 100000);
+        return UUID.randomUUID().toString();
+    }
+
+    private String buildDeduplicationKey(Transaction tx, Rule rule, Integer timeWindow) {
+        if (rule.getRuleType() == RuleType.VELOCITY && timeWindow != null && timeWindow > 0) {
+            long epochMinute = tx.getTransactionTime().getEpochSecond() / 60;
+            long bucket = epochMinute / timeWindow;
+            return String.format("%s|%s|%s|%d",
+                    rule.getId(), tx.getAccountId(), rule.getRuleType(), bucket);
+        }
+        // Option A: one alert per transaction for non-velocity rules.
+        return String.format("%s|%s|%s",
+                rule.getId(), tx.getTransactionId(), rule.getRuleType());
     }
 }

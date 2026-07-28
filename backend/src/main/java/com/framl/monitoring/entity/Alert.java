@@ -19,13 +19,18 @@ import java.util.List;
         @Index(name = "idx_alert_status", columnList = "status"),
         @Index(name = "idx_alert_account", columnList = "accountId"),
         @Index(name = "idx_alert_created", columnList = "createdAt"),
-        @Index(name = "idx_alert_severity", columnList = "severity")
+    @Index(name = "idx_alert_severity", columnList = "severity")
+}, uniqueConstraints = {
+    @UniqueConstraint(name = "uk_alert_deduplication_key", columnNames = "deduplicationKey")
 })
 public class Alert {
 
     @Id
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = 36)
     private String alertId;
+
+    @Column(nullable = false, length = 160)
+    private String deduplicationKey;
 
     @Column(nullable = false, length = 200)
     private String title;
