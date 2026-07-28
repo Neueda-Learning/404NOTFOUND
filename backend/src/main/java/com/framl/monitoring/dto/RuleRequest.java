@@ -2,6 +2,7 @@ package com.framl.monitoring.dto;
 
 import com.framl.monitoring.enums.AlertSeverity;
 import com.framl.monitoring.enums.RuleType;
+import com.framl.monitoring.validation.ValidRuleRequest;
 import lombok.Data;
 
 import jakarta.validation.constraints.NotBlank;
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Data
+@ValidRuleRequest
 public class RuleRequest {
     @NotBlank
     @Size(max = 100)
