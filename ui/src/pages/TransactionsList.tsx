@@ -361,7 +361,6 @@ export default function TransactionsList() {
       align: 'right',
       render: (v, r) => <Text strong>{formatAmount(v, r.currency)}</Text>,
     },
-    { title: 'Currency', dataIndex: 'currency', width: 70 },
     {
       title: 'Status',
       dataIndex: 'status',
