@@ -83,7 +83,7 @@ npm run dev
 
 ## API Overview
 
-- `POST /api/transactions` - ingest transaction and run FRAML checks
+- `POST /api/transactions` - ingest transaction and run risk checks
 - `GET /api/transactions` - list/search/filter transactions
 - `GET /api/transactions/:id` - transaction detail
 - `GET /api/alerts` - list alerts with status/severity filters
