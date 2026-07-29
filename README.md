@@ -1,4 +1,4 @@
-# FRAML Transaction Monitoring System
+# Pay Attention
 
 A full-stack transaction monitoring and alerting system built with **React + TypeScript** (frontend), **Spring Boot** (backend), and **MySQL** (database), implementing a **FRAML** (Fraud/AML) foundation:
 
