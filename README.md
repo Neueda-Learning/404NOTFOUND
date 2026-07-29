@@ -48,7 +48,7 @@ For the full version matrix, see [docs/project/dependency-versions.md](docs/proj
     └── vite.config.ts
 ```
 
-## FRAML Baseline Design
+## Baseline Design
 
 1. Detection: real-time rule evaluation on transaction ingest.
 2. Risk calibration: thresholds can vary by customer risk band.
