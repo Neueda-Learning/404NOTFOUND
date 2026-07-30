@@ -6,7 +6,7 @@ dayjs.extend(utc);
 
 export const formatTime = (iso?: string): string => {
   if (!iso) return '-';
-  return dayjs(iso).format('YYYY-MM-DD HH:mm:ss');
+  return dayjs(iso).format('MM-DD HH:mm:ss');
 };
 
 export const formatTimeShort = (iso?: string): string => {

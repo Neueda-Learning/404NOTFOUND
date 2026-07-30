@@ -50,4 +50,7 @@ public interface AlertRepository extends JpaRepository<Alert, String> {
     @Query("SELECT a FROM Alert a WHERE a.primaryTransactionId = :txId OR " +
            "EXISTS (SELECT 1 FROM AlertTransaction at WHERE at.alert = a AND at.transactionId = :txId)")
     List<Alert> findByTransactionId(@Param("txId") String txId);
+
+    @Query("SELECT COALESCE(MAX(a.createdAt), CURRENT_TIMESTAMP) FROM Alert a")
+    Instant findMaxCreatedAt();
 }

@@ -225,7 +225,7 @@ export default function TransactionsList() {
           to={`/transactions/${id}`}
           onClick={e => e.stopPropagation()}
         >
-          <Text code style={{ fontSize: 12 }}>{id}</Text>
+          <Text code style={{ fontSize: 15 }}>{id}</Text>
         </Link>
       ),
     },
@@ -233,7 +233,7 @@ export default function TransactionsList() {
       title: 'Transaction Time',
       dataIndex: 'transactionTime',
       width: 160,
-      render: v => <span style={{ fontSize: 12 }}>{formatTime(v)}</span>,
+      render: v => <span style={{ fontSize: 16 }}>{formatTime(v)}</span>,
     },
     {
       title: 'Account ID',

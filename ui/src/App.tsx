@@ -20,8 +20,8 @@ const { Title } = Typography;
 
 const menuItems = [
   { key: '/', icon: <DashboardOutlined />, label: <NavLink to="/">Dashboard</NavLink> },
-  { key: '/alerts', icon: <AlertOutlined />, label: <NavLink to="/alerts">Risk Alerts</NavLink> },
   { key: '/transactions', icon: <SwapOutlined />, label: <NavLink to="/transactions">Transactions</NavLink> },
+  { key: '/alerts', icon: <AlertOutlined />, label: <NavLink to="/alerts">Risk Alerts</NavLink> },
   { key: '/rules', icon: <OrderedListOutlined />, label: <NavLink to="/rules">Rules</NavLink> },
 ];
 
@@ -37,7 +37,7 @@ function AppShell() {
     <Layout className="app-frame">
       <Sider width={236} className="app-sidebar">
         <div className="brand-block">
-          <Title level={5} className="brand-title">FRAML Monitor</Title>
+          <Title level={5} className="brand-title">Pay Attention</Title>
           <div className="brand-subtitle">Transaction Monitoring</div>
         </div>
         <Menu
@@ -51,9 +51,8 @@ function AppShell() {
       <Layout className="app-main">
         <Header className="app-header">
           <Title level={5} className="header-title">
-            Transaction Monitoring &amp; Alerts Dashboard
+            Smart Transaction Monitoring Platform
           </Title>
-          <span className="header-pill">Live Monitoring</span>
         </Header>
         <Content className="app-content">
           <Routes>

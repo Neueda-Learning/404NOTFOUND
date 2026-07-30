@@ -28,18 +28,20 @@ public class DashboardService {
         summary.setUnderInvestigation(alertRepository.countByStatus(AlertStatus.INVESTIGATING));
         summary.setHighRiskAlerts(alertRepository.countBySeverity(AlertSeverity.HIGH));
 
-        Instant todayStart = Instant.now().atZone(ZoneOffset.UTC).toLocalDate()
+        // Use latest data timestamp as reference instead of Instant.now()
+        // so dashboard shows data relative to the most recent event
+        Instant latestTimestamp = alertRepository.findMaxCreatedAt();
+        Instant todayStart = latestTimestamp.atZone(ZoneOffset.UTC).toLocalDate()
                 .atStartOfDay(ZoneOffset.UTC).toInstant();
-        Instant now = Instant.now();
-        summary.setTodaysAlerts(alertRepository.countByCreatedAtBetween(todayStart, now));
-        summary.setTodaysTransactions(transactionRepository.countByTimeRange(todayStart, now));
+        summary.setTodaysAlerts(alertRepository.countByCreatedAtBetween(todayStart, latestTimestamp));
+        summary.setTodaysTransactions(transactionRepository.countByTimeRange(todayStart, latestTimestamp));
 
         long txCount = summary.getTodaysTransactions();
         long alertCount = summary.getTodaysAlerts();
         summary.setAlertRate(txCount > 0 ? (double) alertCount / txCount * 100 : 0);
 
-        // 7-day trend
-        Instant sevenDaysAgo = now.minus(7, ChronoUnit.DAYS);
+        // 7-day trend ending at latest data day
+        Instant sevenDaysAgo = todayStart.minus(6, ChronoUnit.DAYS);
         List<Object[]> trendRaw = alertRepository.getAlertTrendRaw(sevenDaysAgo);
         summary.setAlertTrend(buildTrend(trendRaw));
 

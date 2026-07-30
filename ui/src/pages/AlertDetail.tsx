@@ -64,23 +64,20 @@ function AlertSummaryCard({ alert }: { alert: AlertDetail }) {
             <Text code>{alert.alertId}</Text>
             <Text type="secondary">Account: {alert.accountId}</Text>
           </Space>
-          {alert.description && <Paragraph type="secondary" style={{ margin: '8px 0 0', fontSize: 13 }}>{alert.description}</Paragraph>}
+          {alert.description && <Paragraph type="secondary" style={{ margin: '8px 0 0', fontSize: 15 }}>{alert.description}</Paragraph>}
           <Space style={{ marginTop: 8 }}>
             <Text type="secondary">Created: {formatTime(alert.createdAt)}</Text>
             <Text type="secondary">Updated: {formatTime(alert.updatedAt)}</Text>
           </Space>
         </Col>
 
-        <Col className="alert-summary-side" style={{ textAlign: 'center', minWidth: 160 }}>
-          <Space direction="vertical" size={8}>
-            <Tag color={statusColor[alert.status]} className={`monitor-status-tag ${alertStatusClass[alert.status]}`} style={{ fontSize: 14, padding: '4px 12px' }}>{alert.status}</Tag>
-            <Tag color={severityColor[alert.severity]} className="monitor-severity-tag" style={{ fontSize: 14, padding: '4px 12px' }}>{alert.severity}</Tag>
-            <div className="risk-score-block">
-              <Text type="secondary" style={{ fontSize: 12 }}>Risk Score</Text>
+        <Col className="alert-summary-side" style={{ minWidth: 200 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div className="risk-score-block" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Progress
                 type="circle"
                 percent={alert.riskScore}
-                size={60}
+                size={72}
                 strokeColor={
                   alert.riskScore >= 75
                     ? { '0%': '#ff7a7a', '100%': '#b4232e' }
@@ -88,10 +85,19 @@ function AlertSummaryCard({ alert }: { alert: AlertDetail }) {
                       ? { '0%': '#ffd26a', '100%': '#bd6d00' }
                       : { '0%': '#8ed4aa', '100%': '#1f8f55' }
                 }
-                format={p => <span style={{ fontSize: 14, fontWeight: 700 }}>{p}</span>}
+                format={p => <span style={{ fontSize: 16, fontWeight: 700 }}>{p}</span>}
               />
+              <Text type="secondary" style={{ fontSize: 12, marginTop: 2 }}>Risk Score</Text>
             </div>
-          </Space>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <Tag color={statusColor[alert.status]} className={`monitor-status-tag ${alertStatusClass[alert.status]}`} style={{ fontSize: 14, padding: '4px 14px', margin: 0 }}>
+                {alert.status}
+              </Tag>
+              <Tag color={severityColor[alert.severity]} className="monitor-severity-tag" style={{ fontSize: 14, padding: '4px 14px', margin: 0 }}>
+                {alert.severity}
+              </Tag>
+            </div>
+          </div>
         </Col>
       </Row>
     </Card>
@@ -101,7 +107,7 @@ function AlertSummaryCard({ alert }: { alert: AlertDetail }) {
 function AlertInfoCard({ alert }: { alert: AlertDetail }) {
   return (
     <Card title="Alert Information" style={{ marginBottom: 16 }}>
-      <Descriptions column={2} size="small" bordered>
+      <Descriptions column={2} size="middle" bordered>
         <Descriptions.Item label="Alert ID"><Text code>{alert.alertId}</Text></Descriptions.Item>
         <Descriptions.Item label="Title">{alert.title}</Descriptions.Item>
         <Descriptions.Item label="Description" span={2}>{alert.description || '-'}</Descriptions.Item>
@@ -126,7 +132,7 @@ function AlertInfoCard({ alert }: { alert: AlertDetail }) {
 function TriggerRuleCard({ alert }: { alert: AlertDetail }) {
   return (
     <Card title="Triggered Rule" style={{ marginBottom: 16 }}>
-      <Descriptions column={2} size="small" bordered>
+      <Descriptions column={2} size="middle" bordered>
         <Descriptions.Item label="Rule ID">{alert.ruleId || '-'}</Descriptions.Item>
         <Descriptions.Item label="Rule Name">{alert.ruleName || '-'}</Descriptions.Item>
         <Descriptions.Item label="Rule Type">
@@ -207,7 +213,7 @@ function InvestigationPanel({
   return (
     <Card title="Investigation Panel" className="investigation-panel-card" style={{ position: 'sticky', top: 80 }}>
       <Title level={5}>Progress</Title>
-      <Steps direction="vertical" size="small" items={stepItems} style={{ marginBottom: 16 }} />
+      <Steps direction="vertical" size="middle" items={stepItems} style={{ marginBottom: 16 }} />
 
       <Divider />
       <Title level={5}>Investigation Notes</Title>
@@ -254,7 +260,7 @@ function InvestigationPanel({
         cancelText="Cancel"
         okButtonProps={{ danger: confirmAction === 'dismiss' }}
       >
-        <Descriptions column={1} size="small">
+        <Descriptions column={1} size="middle">
           <Descriptions.Item label="Current Status">
             <Tag color={statusColor[alert.status]} className={`monitor-status-tag ${alertStatusClass[alert.status]}`}>{alert.status}</Tag>
           </Descriptions.Item>
@@ -360,7 +366,7 @@ export default function AlertDetail() {
       ellipsis: true,
       render: (v: string) => (
         <Link to={`/transactions/${v}`}>
-          <Text code style={{ fontSize: 13 }}>{v}</Text>
+          <Text code style={{ fontSize: 15 }}>{v}</Text>
         </Link>
       ),
     },
@@ -381,10 +387,11 @@ export default function AlertDetail() {
   return (
     <div className="alert-detail-page">
       {/* Breadcrumb */}
-      <div className="alert-detail-breadcrumb" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="alert-detail-breadcrumb" style={{ marginBottom: 4, display: 'flex', alignItems: 'center', gap: 12 }}>
         <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/alerts')}>Back to Alerts</Button>
         <StatusBreadcrumb alertId={alert.alertId} />
       </div>
+      <Title level={4} style={{ marginTop: 0, marginBottom: 16 }}>Alert Detail</Title>
 
       {/* Summary */}
       <AlertSummaryCard alert={alert} />
@@ -417,11 +424,11 @@ export default function AlertDetail() {
             columns={txColumns}
             dataSource={alert.transactions}
             rowKey="transactionId"
-            size="small"
+            size="middle"
             pagination={false}
             expandable={{
               expandedRowRender: tx => (
-                <Descriptions column={2} size="small">
+                <Descriptions column={2} size="middle">
                   <Descriptions.Item label="Account ID">{tx.accountId}</Descriptions.Item>
                   <Descriptions.Item label="Payee ID">{tx.payeeId || '-'}</Descriptions.Item>
                   <Descriptions.Item label="Description" span={2}>{tx.description || '-'}</Descriptions.Item>
@@ -457,8 +464,8 @@ export default function AlertDetail() {
                     {h.fromStatus && <Tag>{h.fromStatus}</Tag>}
                     <span>→</span>
                     <Tag color={statusColor[h.toStatus]} className={`monitor-status-tag ${alertStatusClass[h.toStatus]}`}>{h.toStatus}</Tag>
-                    <Text type="secondary" style={{ fontSize: 13 }}>{formatTime(h.changedAt)}</Text>
-                    <Text type="secondary" style={{ fontSize: 13 }}>by {h.changedBy}</Text>
+                    <Text type="secondary" style={{ fontSize: 14 }}>{formatTime(h.changedAt)}</Text>
+                    <Text type="secondary" style={{ fontSize: 14 }}>by {h.changedBy}</Text>
                   </Space>
                   {h.comment && <div style={{ marginTop: 4 }}><Text type="secondary">{h.comment}</Text></div>}
                   {h.resolution && <Tag style={{ marginTop: 4 }}>{resolutionCodeLabels[h.resolution] || h.resolution}</Tag>}

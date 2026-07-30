@@ -48,6 +48,8 @@ public class AlertHistory {
 
     @PrePersist
     public void prePersist() {
-        changedAt = Instant.now();
+        if (changedAt == null) {
+            changedAt = Instant.now();
+        }
     }
 }

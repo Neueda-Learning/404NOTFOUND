@@ -52,4 +52,5 @@ public class TransactionRequest {
 
     @Size(max = 500)
     private String description;
+
 }

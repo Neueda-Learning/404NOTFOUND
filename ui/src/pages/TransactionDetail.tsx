@@ -82,7 +82,7 @@ export default function TransactionDetail() {
       render: (alertId: string) => (
         <Link
           to={`/alerts/${alertId}`}
-          style={{ fontFamily: 'monospace', fontSize: 13 }}
+          style={{ fontFamily: 'monospace', fontSize: 15 }}
         >
           {alertId}
         </Link>
@@ -140,13 +140,16 @@ export default function TransactionDetail() {
         Back to Transactions
       </Button>
 
-      <Title level={4} style={{ marginTop: 0 }}>
-        Transaction: <Text code>{tx.transactionId}</Text>
+      <Title level={4} style={{ marginTop: 0, marginBottom: 4 }}>
+        Transaction Detail
       </Title>
+      <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+        Transaction: <Text code>{tx.transactionId}</Text>
+      </Text>
 
       {/* Section 1: Summary */}
       <Card title="Transaction Summary" style={{ marginBottom: 16 }}>
-        <Descriptions column={2} size="small" bordered>
+        <Descriptions column={2} size="middle" bordered>
           <Descriptions.Item label="Transaction ID" span={2}>
             <Text code>{tx.transactionId}</Text>
           </Descriptions.Item>
@@ -165,7 +168,7 @@ export default function TransactionDetail() {
 
       {/* Section 2: Details */}
       <Card title="Transaction Details" style={{ marginBottom: 16 }}>
-        <Descriptions column={2} size="small" bordered>
+        <Descriptions column={2} size="middle" bordered>
           <Descriptions.Item label="Transaction Time">{formatTime(tx.transactionTime)}</Descriptions.Item>
           <Descriptions.Item label="Received Time">{formatTime(tx.receivedAt)}</Descriptions.Item>
           <Descriptions.Item label="Evaluated Time">{formatTime(tx.evaluatedAt)}</Descriptions.Item>
@@ -182,7 +185,7 @@ export default function TransactionDetail() {
 
       {/* Section 3: Account */}
       <Card title="Account Information" style={{ marginBottom: 16 }}>
-        <Descriptions column={2} size="small" bordered>
+        <Descriptions column={2} size="middle" bordered>
           <Descriptions.Item label="Account ID">{tx.accountId}</Descriptions.Item>
           <Descriptions.Item label="Payee ID">{tx.payeeId || '-'}</Descriptions.Item>
           <Descriptions.Item label="Payee Name" span={2}>{tx.payeeName || '-'}</Descriptions.Item>
@@ -199,7 +202,7 @@ export default function TransactionDetail() {
             columns={alertColumns}
             dataSource={alerts}
             rowKey="alertId"
-            size="small"
+            size="middle"
             pagination={false}
             scroll={{ x: 900 }}
           />
