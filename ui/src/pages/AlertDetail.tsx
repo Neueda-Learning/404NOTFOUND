@@ -54,7 +54,7 @@ function StatusBreadcrumb({ alertId }: { alertId: string }) {
   );
 }
 
-function AlertSummaryCard({ alert, onAction }: { alert: AlertDetail; onAction: (action: string) => void }) {
+function AlertSummaryCard({ alert }: { alert: AlertDetail }) {
   return (
     <Card className="alert-summary-card" style={{ marginBottom: 24 }}>
       <Row align="middle" gutter={24} className="alert-summary-grid">
@@ -394,7 +394,7 @@ export default function AlertDetail() {
       <Title level={4} style={{ marginTop: 0, marginBottom: 16 }}>Alert Detail</Title>
 
       {/* Summary */}
-      <AlertSummaryCard alert={alert} onAction={(action) => setConfirmAction(action)} />
+      <AlertSummaryCard alert={alert} />
 
       {/* Main Content - 2 column layout */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>

@@ -28,7 +28,7 @@ public class AlertService {
                                                String accountId, Instant fromTime, Instant toTime,
                                                String q, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        String likeQ = q != null ? "%" + q + "%" : null;
+        String likeQ = toLikeQuery(q);
 
         Page<Alert> result = alertRepository.searchAlerts(status, severity, accountId, fromTime, toTime, likeQ, pageable);
         return buildPage(result.map(a -> toResponse(a, false)));
@@ -214,5 +214,16 @@ public class AlertService {
         resp.setTotalPages(p.getTotalPages());
         resp.setLast(p.isLast());
         return resp;
+    }
+
+    private String toLikeQuery(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String trimmed = raw.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        return "%" + trimmed + "%";
     }
 }
