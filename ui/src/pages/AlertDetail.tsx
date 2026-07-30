@@ -387,10 +387,11 @@ export default function AlertDetail() {
   return (
     <div className="alert-detail-page">
       {/* Breadcrumb */}
-      <div className="alert-detail-breadcrumb" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="alert-detail-breadcrumb" style={{ marginBottom: 4, display: 'flex', alignItems: 'center', gap: 12 }}>
         <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/alerts')}>Back to Alerts</Button>
         <StatusBreadcrumb alertId={alert.alertId} />
       </div>
+      <Title level={4} style={{ marginTop: 0, marginBottom: 16 }}>Alert Detail</Title>
 
       {/* Summary */}
       <AlertSummaryCard alert={alert} onAction={(action) => setConfirmAction(action)} />

@@ -140,9 +140,12 @@ export default function TransactionDetail() {
         Back to Transactions
       </Button>
 
-      <Title level={4} style={{ marginTop: 0 }}>
-        Transaction: <Text code>{tx.transactionId}</Text>
+      <Title level={4} style={{ marginTop: 0, marginBottom: 4 }}>
+        Transaction Detail
       </Title>
+      <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+        Transaction: <Text code>{tx.transactionId}</Text>
+      </Text>
 
       {/* Section 1: Summary */}
       <Card title="Transaction Summary" style={{ marginBottom: 16 }}>
