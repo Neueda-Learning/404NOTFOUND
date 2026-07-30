@@ -153,27 +153,18 @@ export default function AlertsList() {
     {
       title: 'Severity',
       dataIndex: 'severity',
-      width: 90,
+      width: 110,
       render: (v: AlertSeverity) => <Tag color={severityColor[v]} className="monitor-severity-tag">{v}</Tag>,
     },
     {
       title: 'Status',
       dataIndex: 'status',
-      width: 130,
+      width: 160,
       render: (v: AlertStatus) => (
         <Badge
           color={alertStatusDotColor[v]}
           text={<Tag color={statusColor[v]} className={`monitor-status-tag ${alertStatusClass[v]}`}>{v}</Tag>}
         />
-      ),
-    },
-    {
-      title: 'Action',
-      width: 80,
-      render: (_, r) => (
-        <Button size="small" type="link" onClick={e => { e.stopPropagation(); navigate(`/alerts/${r.alertId}`); }}>
-          Detail
-        </Button>
       ),
     },
   ];

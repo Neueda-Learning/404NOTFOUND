@@ -20,8 +20,8 @@ const { Title } = Typography;
 
 const menuItems = [
   { key: '/', icon: <DashboardOutlined />, label: <NavLink to="/">Dashboard</NavLink> },
-  { key: '/alerts', icon: <AlertOutlined />, label: <NavLink to="/alerts">Risk Alerts</NavLink> },
   { key: '/transactions', icon: <SwapOutlined />, label: <NavLink to="/transactions">Transactions</NavLink> },
+  { key: '/alerts', icon: <AlertOutlined />, label: <NavLink to="/alerts">Risk Alerts</NavLink> },
   { key: '/rules', icon: <OrderedListOutlined />, label: <NavLink to="/rules">Rules</NavLink> },
 ];
 

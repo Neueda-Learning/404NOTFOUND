@@ -263,18 +263,6 @@ body {
 	animation: card-rise 450ms ease both;
 }
 
-.kpi-row-wrap {
-	overflow-x: auto;
-	padding-bottom: 2px;
-}
-
-.kpi-row {
-	min-width: 1080px;
-}
-
-.kpi-col {
-	min-width: 170px;
-}
 
 .kpi-title-one-line {
 	display: inline-block;
@@ -619,9 +607,6 @@ body {
 		width: 100%;
 	}
 
-	.kpi-row {
-		min-width: 1040px;
-	}
 }
 
 @media (max-width: 768px) {

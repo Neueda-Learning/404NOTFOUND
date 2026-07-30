@@ -162,28 +162,26 @@ export default function Dashboard() {
       </Card>
 
       {/* KPI Cards */}
-      <div className="kpi-row-wrap" style={{ marginBottom: 24 }}>
-        <Row className="kpi-row" gutter={[16, 16]} wrap={false}>
-        <Col className="kpi-col" flex="1 0 0">
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24} sm={12} md={8} lg={4}>
           <StatCard title="Open Alerts" value={data.openAlerts} icon={<AlertOutlined />} color="#ff4d4f" />
         </Col>
-        <Col className="kpi-col" flex="1 0 0">
+        <Col xs={24} sm={12} md={8} lg={4}>
           <StatCard title="Under Investigation" value={data.underInvestigation} icon={<EyeOutlined />} color="#1890ff" />
         </Col>
-        <Col className="kpi-col" flex="1 0 0">
+        <Col xs={24} sm={12} md={8} lg={4}>
           <StatCard title="Today's Alerts" value={data.todaysAlerts} icon={<AlertOutlined />} color="#fa8c16" />
         </Col>
-        <Col className="kpi-col" flex="1 0 0">
+        <Col xs={24} sm={12} md={8} lg={4}>
           <StatCard title="High Risk Alerts" value={data.highRiskAlerts} icon={<AlertOutlined />} color="#cf1322" />
         </Col>
-        <Col className="kpi-col" flex="1 0 0">
+        <Col xs={24} sm={12} md={8} lg={4}>
           <StatCard title="Today's Transactions" value={data.todaysTransactions} icon={<SwapOutlined />} color="#52c41a" />
         </Col>
-        <Col className="kpi-col" flex="1 0 0">
+        <Col xs={24} sm={12} md={8} lg={4}>
           <StatCard title="Alert Rate" value={data.alertRate} suffix="%" precision={1} icon={<RiseOutlined />} color="#225b7d" />
         </Col>
-        </Row>
-      </div>
+      </Row>
 
       {/* Charts Row */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
